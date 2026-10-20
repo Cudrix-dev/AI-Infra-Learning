@@ -1,0 +1,6 @@
+# Training, resume checks, and profiling (baseline version).
+# For GPU runs, install a CUDA-enabled PyTorch build matching your environment.
+torch==2.13.0
+
+# Only needed to regenerate day01/assets/model_architecture.png.
+Pillow>=10.0

@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1800" viewBox="0 0 2400 1800">
+<rect width="100%" height="100%" fill="#f5f7fb"/>
+<text x="80" y="48" font-family="Microsoft YaHei,sans-serif" font-size="54" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Day 01 · TinyTransformer Model Architecture</text>
+<text x="82" y="125" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="start">Matches train.py: learned positional embeddings / causal self-attention / Pre-Norm / FP32</text>
+<rect x="60" y="205" width="700" height="1270" rx="18" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+<rect x="790" y="205" width="780" height="1270" rx="18" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+<rect x="1600" y="205" width="740" height="1270" rx="18" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="90" y="235" font-family="Microsoft YaHei,sans-serif" font-size="35" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">① Feed Forward Process</text>
+<text x="820" y="235" font-family="Microsoft YaHei,sans-serif" font-size="35" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">② Single Transformer Block</text>
+<text x="1630" y="235" font-family="Microsoft YaHei,sans-serif" font-size="35" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">③ Attention and Causal Constraints</text>
+<rect x="95" y="310" width="300" height="95" rx="18" fill="#eaf1fc" stroke="#dbe3ee" stroke-width="2"/>
+<text x="245.0" y="326" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Input token IDs</text>
+<text x="245.0" y="367" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">[B,T] integer</text>
+<rect x="425" y="310" width="300" height="95" rx="18" fill="#eaf1fc" stroke="#dbe3ee" stroke-width="2"/>
+<text x="575.0" y="326" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">position index</text>
+<text x="575.0" y="367" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">0 … T−1</text>
+<polyline points="245,405 245,445" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="245,445 236,430 254,430" fill="#536b87"/>
+<polyline points="575,405 575,445" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="575,445 566,430 584,430" fill="#536b87"/>
+<rect x="95" y="445" width="300" height="110" rx="18" fill="#def3ed" stroke="#dbe3ee" stroke-width="2"/>
+<text x="245.0" y="461" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Token Embedding</text>
+<text x="245.0" y="502" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">V → D  [B,T,D]</text>
+<rect x="425" y="445" width="300" height="110" rx="18" fill="#def3ed" stroke="#dbe3ee" stroke-width="2"/>
+<text x="575.0" y="461" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Position Embedding</text>
+<text x="575.0" y="502" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">T → D  [T,D]</text>
+<polyline points="245,555 245,610 385,610" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="385,610 370,601 370,619" fill="#536b87"/>
+<polyline points="575,555 575,610 435,610" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="435,610 450,601 450,619" fill="#536b87"/>
+<circle cx="410" cy="610" r="25" fill="white" stroke="#536b87" stroke-width="3"/>
+<text x="410" y="588" font-family="Microsoft YaHei,sans-serif" font-size="34" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">+</text>
+<text x="490" y="635" font-family="Microsoft YaHei,sans-serif" font-size="24" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="start">broadcast across batch</text>
+<polyline points="410,635 410,700" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="410,700 401,685 419,685" fill="#536b87"/>
+<rect x="150" y="700" width="520" height="110" rx="18" fill="#e6edfd" stroke="#dbe3ee" stroke-width="2"/>
+<text x="410.0" y="716" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Transformer Block × L</text>
+<text x="410.0" y="757" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">output [B,T,D] each layer</text>
+<polyline points="410,810 410,860" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="410,860 401,845 419,845" fill="#536b87"/>
+<rect x="150" y="860" width="520" height="95" rx="18" fill="#ece6fa" stroke="#dbe3ee" stroke-width="2"/>
+<text x="410.0" y="876" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Final LayerNorm</text>
+<text x="410.0" y="917" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">[B,T,D]</text>
+<polyline points="410,955 410,1005" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="410,1005 401,990 419,990" fill="#536b87"/>
+<rect x="150" y="1005" width="520" height="95" rx="18" fill="#ece6fa" stroke="#dbe3ee" stroke-width="2"/>
+<text x="410.0" y="1021" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Linear Head</text>
+<text x="410.0" y="1062" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">D → V (with bias)</text>
+<polyline points="410,1100 410,1150" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="410,1150 401,1135 419,1135" fill="#536b87"/>
+<rect x="150" y="1150" width="520" height="100" rx="18" fill="#ece6fa" stroke="#dbe3ee" stroke-width="2"/>
+<text x="410.0" y="1166" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Output Logits</text>
+<text x="410.0" y="1207" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">[B,T,V], Softmax</text>
+<text x="95" y="1305" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">• Token Embedding and Head do not share weights</text>
+<text x="95" y="1355" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">• No cross-attention; no RoPE</text>
+<text x="95" y="1405" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">• forward() returns logits only</text>
+<text x="1210" y="310" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Input h  [B,T,D]</text>
+<polyline points="1210,355 1210,395" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,395 1201,380 1219,380" fill="#536b87"/>
+<rect x="1030" y="395" width="360" height="80" rx="18" fill="#edf1f8" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1210.0" y="411" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">LayerNorm 1</text>
+<polyline points="1210,475 1210,515" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,515 1201,500 1219,500" fill="#536b87"/>
+<rect x="1030" y="515" width="360" height="110" rx="18" fill="#e2edff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1210.0" y="531" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Causal Multi-Head</text>
+<text x="1210.0" y="572" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">Self-Attention</text>
+<polyline points="1210,625 1210,685" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,685 1201,670 1219,670" fill="#536b87"/>
+<circle cx="1210" cy="710" r="25" fill="white" stroke="#536b87" stroke-width="3"/>
+<text x="1210" y="688" font-family="Microsoft YaHei,sans-serif" font-size="34" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">+</text>
+<polyline points="1210,365 910,365 910,710 1185,710" fill="none" stroke="#218b79" stroke-width="4"/>
+<polygon points="1185,710 1170,701 1170,719" fill="#218b79"/>
+<text x="855" y="490" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#218b79" dominant-baseline="text-before-edge" text-anchor="start">Residual 1</text>
+<text x="1270" y="690" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">h′</text>
+<polyline points="1210,735 1210,785" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,785 1201,770 1219,770" fill="#536b87"/>
+<rect x="1030" y="785" width="360" height="80" rx="18" fill="#edf1f8" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1210.0" y="801" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">LayerNorm 2</text>
+<polyline points="1210,865 1210,905" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,905 1201,890 1219,890" fill="#536b87"/>
+<rect x="1030" y="905" width="360" height="80" rx="18" fill="#fff0d8" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1210.0" y="921" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Linear  D → 4D</text>
+<polyline points="1210,985 1210,1015" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,1015 1201,1000 1219,1000" fill="#536b87"/>
+<rect x="1030" y="1015" width="360" height="70" rx="18" fill="#fff0d8" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1210.0" y="1031" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">ReLU</text>
+<polyline points="1210,1085 1210,1115" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,1115 1201,1100 1219,1100" fill="#536b87"/>
+<rect x="1030" y="1115" width="360" height="80" rx="18" fill="#fff0d8" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1210.0" y="1131" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Linear  4D → D</text>
+<polyline points="1210,1195 1210,1240" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,1240 1201,1225 1219,1225" fill="#536b87"/>
+<circle cx="1210" cy="1265" r="25" fill="white" stroke="#536b87" stroke-width="3"/>
+<text x="1210" y="1243" font-family="Microsoft YaHei,sans-serif" font-size="34" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">+</text>
+<polyline points="1210,755 1480,755 1480,1265 1235,1265" fill="none" stroke="#218b79" stroke-width="4"/>
+<polygon points="1235,1265 1250,1256 1250,1274" fill="#218b79"/>
+<text x="1430" y="965" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#218b79" dominant-baseline="text-before-edge" text-anchor="start">Residual 2</text>
+<polyline points="1210,1290 1210,1320" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1210,1320 1201,1305 1219,1305" fill="#536b87"/>
+<text x="1210" y="1325" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Output h_out  [B,T,D]</text>
+<text x="830" y="1390" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">h′ = h + Attention(LN1(h))</text>
+<text x="830" y="1430" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">h_out = h′ + FFN(LN2(h′))   ·   dropout=0</text>
+<rect x="1660" y="315" width="620" height="80" rx="18" fill="#edf1f8" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1970.0" y="331" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Hidden states from LayerNorm 1</text>
+<polyline points="1970,395 1970,420 1750,420 1750,450" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1750,450 1741,435 1759,435" fill="#536b87"/>
+<rect x="1660" y="450" width="180" height="80" rx="18" fill="#e2edff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1750.0" y="466" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Q Projection</text>
+<polyline points="1970,395 1970,420 1970,420 1970,450" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1970,450 1961,435 1979,435" fill="#536b87"/>
+<rect x="1880" y="450" width="180" height="80" rx="18" fill="#e2edff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1970.0" y="466" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">K Projection</text>
+<polyline points="1970,395 1970,420 2190,420 2190,450" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="2190,450 2181,435 2199,435" fill="#536b87"/>
+<rect x="2100" y="450" width="180" height="80" rx="18" fill="#e2edff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="2190.0" y="466" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">V Projection</text>
+<text x="1970" y="555" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Split into H heads: [B,H,T,d_h]</text>
+<text x="1970" y="600" font-family="Microsoft YaHei,sans-serif" font-size="27" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">d_h = D / H</text>
+<polyline points="1970,640 1970,675" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1970,675 1961,660 1979,660" fill="#536b87"/>
+<rect x="1660" y="675" width="620" height="110" rx="18" fill="#e2edff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1970.0" y="691" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">softmax(QK^T / sqrt(d_h) + M) V</text>
+<text x="1970.0" y="732" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">M: future positions = −∞; all others = 0</text>
+<polyline points="1970,785 1970,830" fill="none" stroke="#536b87" stroke-width="4"/>
+<polygon points="1970,830 1961,815 1979,815" fill="#536b87"/>
+<rect x="1660" y="830" width="620" height="95" rx="18" fill="#e2edff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1970.0" y="846" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">Concatenate heads → output projection</text>
+<text x="1970.0" y="887" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="middle">[B,T,D] → [B,T,D]</text>
+<text x="1640" y="970" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Causal mask (example T=4)</text>
+<rect x="1740" y="1035" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1770" y="1047" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1805" y="1035" width="60" height="60" rx="5" fill="#e7ebf2" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1835" y="1047" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">×</text>
+<rect x="1870" y="1035" width="60" height="60" rx="5" fill="#e7ebf2" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1900" y="1047" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">×</text>
+<rect x="1935" y="1035" width="60" height="60" rx="5" fill="#e7ebf2" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1965" y="1047" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">×</text>
+<rect x="1740" y="1100" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1770" y="1112" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1805" y="1100" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1835" y="1112" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1870" y="1100" width="60" height="60" rx="5" fill="#e7ebf2" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1900" y="1112" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">×</text>
+<rect x="1935" y="1100" width="60" height="60" rx="5" fill="#e7ebf2" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1965" y="1112" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">×</text>
+<rect x="1740" y="1165" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1770" y="1177" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1805" y="1165" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1835" y="1177" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1870" y="1165" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1900" y="1177" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1935" y="1165" width="60" height="60" rx="5" fill="#e7ebf2" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1965" y="1177" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">×</text>
+<rect x="1740" y="1230" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1770" y="1242" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1805" y="1230" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1835" y="1242" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1870" y="1230" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1900" y="1242" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<rect x="1935" y="1230" width="60" height="60" rx="5" fill="#ccece4" stroke="#dbe3ee" stroke-width="2"/>
+<text x="1965" y="1242" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="middle">O</text>
+<text x="2050" y="1060" font-family="Microsoft YaHei,sans-serif" font-size="24" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Rows: query</text>
+<text x="2050" y="1110" font-family="Microsoft YaHei,sans-serif" font-size="24" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Columns: key</text>
+<text x="1660" y="1320" font-family="Microsoft YaHei,sans-serif" font-size="27" fill="#218b79" dominant-baseline="text-before-edge" text-anchor="start">Allowed: current and past positions</text>
+<text x="1660" y="1370" font-family="Microsoft YaHei,sans-serif" font-size="27" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="start">Blocked: future positions in the upper triangle</text>
+<text x="1660" y="1420" font-family="Microsoft YaHei,sans-serif" font-size="24" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Mask before softmax to prevent label leakage</text>
+<rect x="60" y="1505" width="2280" height="245" rx="18" fill="#ffffff" stroke="#dbe3ee" stroke-width="2"/>
+<text x="90" y="1530" font-family="Microsoft YaHei,sans-serif" font-size="30" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Default tiny configuration: </text>
+<text x="470" y="1532" font-family="Microsoft YaHei,sans-serif" font-size="29" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">B=16   T=64   V=128   D=128   L=2   H=4   d_h=32</text>
+<text x="90" y="1590" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Shapes: [16,64] → [16,64,128] → logits [16,64,128]; D and V have the same value but different meanings.</text>
+<text x="90" y="1650" font-family="Microsoft YaHei,sans-serif" font-size="28" fill="#192d48" dominant-baseline="text-before-edge" text-anchor="start">Training: reshape logits to [B·T,V], labels to [B·T] → Cross Entropy → scalar loss</text>
+<text x="90" y="1700" font-family="Microsoft YaHei,sans-serif" font-size="25" fill="#536b87" dominant-baseline="text-before-edge" text-anchor="start">Cross Entropy handles log_softmax internally; do not add Softmax after the model Head.</text>
+</svg>
