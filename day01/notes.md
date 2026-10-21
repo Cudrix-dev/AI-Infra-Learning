@@ -1,6 +1,9 @@
 # Day 01 — Reproducible single-GPU baseline
 
-> Setup: NVIDIA GeForce RTX 5060 Laptop GPU (8 GB, sm_120), Windows 11, Python 3.13.15, torch 2.13.0+cu130, CUDA 13.0, cuDNN 9.20, FP32 with TF32 disabled.
+> Setup: three machines, all FP32 with TF32 disabled, CUDA 13.0.
+> - **Laptop:** RTX 5060 Laptop GPU (8 GB, sm_120), Windows 11, Python 3.13.15, torch 2.13.0+cu130, cuDNN 9.20.
+> - **Desktop:** RTX 4090 (48 GB variant, sm_89) + AMD Ryzen 9 9950X, Linux 7.0, Python 3.14.4, torch 2.14.1+cu130, cuDNN 9.24.
+> - **Server:** RTX 5090 (32 GB, sm_120) + 2× Intel Xeon Platinum 8380, Linux 5.15, Python 3.10.12, torch 2.14.1+cu130, cuDNN 9.24. One GPU used.
 > Code: [`experiments/day01_single_gpu/`](../experiments/day01_single_gpu/README.md)
 
 ## 1. What systems problem did I solve today?
@@ -82,6 +85,8 @@ ALL CHECKS PASSED
 
 Every compared value matches to the last bit: losses, parameters, Adam's `exp_avg`, `exp_avg_sq` and `step`, the learning rate, and the scheduler counters. The full and part runs also printed the same losses as the deterministic runs on 2026-10-19, so the result repeats across days.
 
+**The same checks on the desktop (RTX 4090) and the server (RTX 5090), 2026-10-21:** both pass A, B and C1–C3 with max|diff| = 0 in deterministic mode (atol = 0) and in non-deterministic mode (atol = 1e-5). The negative control reports 6.459e-01 on all three machines.
+
 **Negative control.** `--bad-resume` loads only the model weights. Adam's moments restart at zero, its step counter at 0, and the LR schedule restarts. The two runs begin from identical weights at step 100, yet their losses diverge by up to **0.646**: the final loss is 2.347 instead of 2.953. A missing optimizer or scheduler state is therefore easy to detect.
 
 The bad resume uses fresh Adam moments and a restarted learning-rate schedule. Its final loss is lower, but this does not make the resume correct: it follows a different training trajectory. Separate ablations would be needed to identify the cause of the lower loss.
@@ -92,64 +97,114 @@ The bad resume uses fresh Adam moments and a restarted learning-rate schedule. I
 - **Non-deterministic mode on tiny resumed bit-exactly too.** That is a result for this configuration on this GPU, not a guarantee.
 - **Non-deterministic medium vs deterministic medium:** the losses first differ at step index 5 (9.160842896 vs 9.160843849). That is exactly **1 ULP**: fp32 values in [8, 16) are spaced 2⁻²⁰ ≈ 9.54e-7 apart. The difference grows about 2500× to 2.4e-3 by step 100, then levels off at 1e-3 to 5e-3. The final losses are 5.8431 vs 5.8446. Once the two runs are effectively independent, the gap is limited by ordinary step-to-step loss noise. Equal losses at steps 0–4 do not prove the parameters were equal; the loss is a mean over 4096 tokens rounded to fp32.
 - **Non-deterministic medium is not repeatable run to run.** The step-100 loss printed 7.9763 in one run and 7.9767 in another, from the identical command.
-- **Tolerance I use from now on:** deterministic → atol = 0. Non-deterministic → only statistically equivalent; expect ~1 ULP at first, growing to ~1e-3 within ~100 steps.
+- **Deterministic means repeatable on one machine, not across machines.** The deterministic medium loss at step 100 printed 7.9765 on the laptop, 7.9767 on the desktop and 7.9768 on the server. Even tiny, which agrees to 4 decimals for most of the run, differs at step 280 (2.1267 vs 2.1266 on the server). The desktop and server run the same torch build, yet the profiler shows different GEMM kernel choices: the 4090 mixes `ampere_sgemm_*` with `cutlass_80_simt_sgemm_*`, while the 5090 uses `cutlass_80_simt_sgemm_*` and `magma_sgemmEx`. Different kernels sum in a different order, so the bits differ. Cross-machine comparisons need a tolerance, never atol = 0.
+- **Tolerance I use from now on:** deterministic on the same machine and software → atol = 0. Different machines, or non-deterministic → only statistically equivalent; expect ~1 ULP at first, growing to ~1e-3 within ~100 steps.
 
 The memory probe also supports the expected state lifecycle: the first Adam update added approximately 210MiB, the next gradient clear released approximately 106 MiB, and the second Adam update added no comparable persistent state.
 
 ## 6. What the performance data proves (and what it doesn't)
 
-Environment: RTX 5060 Laptop GPU, approximately 8 GB VRAM, Windows 11, PyTorch `2.13.0+cu130`, CUDA 13.0, FP32 with TF32 disabled. Each benchmark ran for 300 steps, excluding the first 10 from timing statistics. Timing uses CUDA events.
-
-**Latest baseline (2026-10-20, with `del logits` in `train_step`):**
-
-| Configuration | Median step | p90 | Tokens/s | Peak allocated | Peak reserved |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Tiny, deterministic | 9.49 ms | 12.39 ms | 101,566 | 91.28 MiB | 104 MiB |
-| Medium, deterministic (math attention) | 133.67 ms | 143.29 ms | 30,444 | 1644.74 MiB | 1706 MiB |
-| Medium, automatic attention selection (fused) | 124.57 ms | 130.73 ms | 32,745 | 1405.99 MiB | 1484 MiB |
+Each benchmark ran for 300 steps, excluding the first 10 from timing statistics. Timing uses CUDA events. All runs include `del logits` in `train_step`.
 
 ```bash
 python experiments/day01_single_gpu/train.py --tag base_tiny   --steps 300
 python experiments/day01_single_gpu/train.py --tag base_medium --steps 300 --preset medium
 python experiments/day01_single_gpu/train.py --tag fast_medium --steps 300 --preset medium --no-deterministic
+python experiments/day01_single_gpu/profile_attention.py --mode det    # and --mode fast
 ```
 
-**Effect of `del logits` (same configs, earlier run without it):**
+**Median step time (p90 in brackets):**
+
+| Configuration | Laptop: RTX 5060 Laptop + Windows | Desktop: RTX 4090 + Ryzen 9 9950X | Server: RTX 5090 + Xeon 8380 |
+| --- | ---: | ---: | ---: |
+| Tiny, deterministic | 9.49 ms (12.39) | 2.78 ms (3.01) | 21.14 ms (22.83) |
+| Medium, deterministic (math attention) | 133.67 ms (143.29) | 24.70 ms (24.76) | 43.95 ms (45.51) |
+| Medium, automatic attention (fused) | 124.57 ms (130.73) | 23.33 ms (23.41) | 41.68 ms (44.00) |
+| Medium tokens/s, deterministic | 30,444 | 165,702 | 95,962 |
+| Fused-attention speedup | 6.8% (3.9% in an earlier run) | 5.6% | 5.2% |
+
+**Peak memory is the same on every machine:**
+
+| Configuration | Peak allocated | Peak reserved |
+| --- | ---: | ---: |
+| Medium, deterministic | 1644.74 MiB | 1706 MiB |
+| Medium, fused attention | 1406.0 MiB | 1484 MiB |
+
+The memory probe printed the same table to 0.01 MiB on all three machines. Memory is set by tensor shapes, the cuBLAS workspace setting and the allocator's rounding rules, not by GPU architecture.
+
+**Effect of `del logits` (laptop, same configs, earlier run without it):**
 
 | Configuration | Peak before | Peak after | Change |
 | --- | ---: | ---: | ---: |
 | Medium, deterministic | 1772.74 MiB | 1644.74 MiB | −128.00 MiB |
 | Medium, automatic attention selection | 1533.99 MiB | 1405.99 MiB | −128.00 MiB |
 
-The drop is exactly B·T·V·4 bytes = 128 MiB, the logits tensor. After the change, the deterministic training peak (1644.74 MiB) equals the memory probe's peak (1644.66 MiB). Before it, the peak was the probe's value plus the logits that `train_step` still referenced.
+The drop is exactly B·T·V·4 bytes = 128 MiB, the logits tensor. After the change, the deterministic training peak (1644.74 MiB) equals the memory probe's peak (1644.66 MiB). Allowing automatic attention selection reduced the peak by a further 238.75 MiB (14.5%), which matches the per-layer estimate in Question 4.
 
-Allowing automatic attention selection reduced medium peak memory by 238.75 MiB (14.5%), which matches the per-layer estimate in Question 4. These results support the proposed attention-memory explanation, but do not identify the selected kernel or independently verify every saved tensor.
+### Who is the bottleneck: CPU or GPU?
 
-**Timing noise.** Run-to-run variation on this laptop is large:
+The profiler sums GPU kernel time per step (5 profiled medium steps, `Self CUDA time total / 5`). Comparing it with the measured step time shows how busy the GPU actually was:
 
-| Workload | Median step time across runs of the same per-step work |
+| Medium, deterministic | Desktop (4090) | Server (5090) |
+| --- | ---: | ---: |
+| GPU kernel time per step | 24.14 ms | 17.36 ms |
+| Measured step time | 24.70 ms | 43.95 ms |
+| GPU busy | ≈98% | ≈40% |
+| of which GEMMs (`mm` + `addmm` + `bmm`) | 14.80 ms | 12.41 ms |
+| CPU time per step under the profiler | 28.9 ms | 70.7 ms |
+
+- **The desktop is GPU-bound.** Kernels fill 98% of the step, so its step time measures the GPU.
+- **The server is CPU-bound, even on medium.** The 5090 finishes its kernels in 17.4 ms, faster than the 4090, but then waits about 60% of each step for the CPU to launch more work. The Xeon 8380 has much lower single-thread speed than the 9950X, and every kernel launch passes through one Python thread. The faster GPU produces the slower training run.
+- **Tiny is launch-bound everywhere.** Its step time tracks the CPU, not the GPU: 2.8 ms on the 9950X, 9.5 ms on the laptop, 21 ms on the Xeon, even though the 5090 is the fastest GPU of the three. Medium is 8.9× slower than tiny on the desktop, but only 2.1× slower on the server, where both are host-bound.
+- **The optimizer is the main launch-heavy phase.** `foreach=False` AdamW launches several small kernels for each of medium's 78 parameter tensors. The profiler's `Optimizer.step` range spans about 2.2 ms per step on the desktop and about 12.3 ms on the server for the same work.
+
+This is the strongest result of the day: **throughput is set by whichever of CPU launch or GPU work is slower.** A faster GPU does not help a host-bound loop. Fixes that cut launches (foreach/fused optimizers, `torch.compile`, CUDA Graphs on Day 5) matter most on the server.
+
+### Attention: FLOP share is not time share
+
+- **The fused kernel is memory-efficient attention:** `fmha_cutlassF_f32_aligned_64x64_rf_sm80` (forward) and `fmha_cutlassB_f32_aligned_64x64_k64_sm80` (backward), on both the desktop and the server. Flash attention is ruled out because it needs FP16/BF16 inputs and cannot take an arbitrary float mask.
+- **On the desktop**, fused attention takes 2.90 ms per step (0.80 forward + 2.10 backward). Total kernel time falls by 1.28 ms per step when switching from math to fused, so math attention costs about 2.90 + 1.28 ≈ 4.2 ms per step. That is about 17% of GPU time, against about 6% of the FLOPs. The extra time is memory-bound work on the [B,H,T,T] tensor: scaling, mask add, softmax, softmax backward, and copies.
+- **On the server**, kernel time barely changes (−0.08 ms per step), yet the step is 5.2% faster. The likely reason is that the math path launches more separate kernels, and the server pays for launches, not GPU time.
+- **The speedup is now pinned down.** On the desktop, p90 is within 0.3% of the median, so 5.6% is a clean result. The laptop's 3.9% and 6.8% were the same effect seen through laptop noise.
+
+### Arithmetic throughput
+
+6·N·tokens + 12·L·T·D·tokens ≈ 607 GFLOP per medium step, with N = 23.1M non-embedding parameters.
+
+| | Laptop | Desktop (4090) | Server (5090) |
+| --- | ---: | ---: | ---: |
+| Achieved, deterministic | 4.5 TFLOP/s | 24.6 TFLOP/s | 13.8 TFLOP/s |
+| Achieved by kernel time alone | — | 25.1 TFLOP/s | 35.0 TFLOP/s |
+| NVIDIA FP32 peak (non-tensor) | — | ≈82.6 | ≈104.8 |
+| Fraction of peak (kernel time) | — | ≈30% | ≈33% |
+
+Every GEMM in the profiles is a SIMT `sgemm` kernel, because TF32 is disabled: no tensor cores are used. The observed GEMMs use SIMT FP32 kernels rather than Tensor Cores. The estimated workload throughput reaches about 30% of the non-tensor FP32 peak; this is an observed result, not a SIMT efficiency ceiling. TF32 or BF16 (Day 9) is the lever for the GEMMs.
+
+### Timing noise
+
+| Machine | Behaviour |
 | --- | --- |
-| Medium, deterministic (2 runs) | 130.33, 133.67 ms (2.6% apart) |
-| Medium, automatic attention (2 runs) | 125.25, 124.57 ms |
-| Tiny, deterministic (9 runs, 2026-10-19 to 2026-10-21) | 8.17 to 13.29 ms; one run at 23.88 ms |
+| Laptop | Medium varied 2.6% between identical runs; tiny medians ranged 8.17–13.29 ms over 9 runs, plus one run at 23.88 ms |
+| Desktop | Very stable: medium p90 within 0.3% of the median |
+| Server | Tiny is unstable: median 21.1–21.6 ms in four runs, 16.6 ms in the smoke run and 9.90 ms in the bad-resume run, which does the same work per step. The mean is below the median in most runs, so some steps are much faster than others |
 
-The 23.88 ms run was the bad resume. It does the same work per step as the others, so the slowdown most likely came from outside the program (clocks, power state, background load); the logs cannot show which.
+The server's spread most likely comes from the host: other jobs on the shared CPUs, CPU frequency changes, or the process running on the socket far from the GPU. The logs cannot tell which. For server benchmarks, pin the process to the GPU's NUMA node (`nvidia-smi topo -m`, then `numactl --cpunodebind`) and check for other GPU and CPU users first.
 
-So the attention speedup is not pinned down: one pair of runs gave 3.5%, the other 7.6%. It needs interleaved repeats reported as mean ± spread, or a kernel-level profile (`profile_attention.py`). Tiny timings vary by more than 40% even without the outlier, so tiny is useful for correctness checks, not for performance comparisons.
+### What it does not prove
 
-The tiny workload is likely sensitive to CPU launch overhead. Medium processes 4× more tokens per step with about 63× more parameters, yet is only about 13–14× slower. `Adam.step()` with `foreach=False` launches several kernels for each of tiny's 30 parameter tensors. Profiling and controlled optimizer comparisons (`foreach` / `fused`) are needed to confirm the bottleneck. FLOPs percentages alone do not establish runtime percentages: attention is about 6% of medium's FLOPs, but the math path also runs memory-bound operations on the [B,H,T,T] tensor.
-
-Medium's arithmetic throughput is about 4.5–4.9 TFLOP/s in FP32: 6·N·tokens + 12·L·T·D·tokens ≈ 607 GFLOP per step, with N = 23.1M non-embedding parameters.
-
-The reported throughput covers the measured step intervals, rather than complete training wall time including checkpoint saves. These single-GPU results also do not establish distributed scaling, communication efficiency, or reproducibility across hardware and software versions.
+- **The server diagnosis is an inference.** Kernel time vs step time shows the GPU idles 60% of the time; the Perfetto trace (`trace_det.json`) will show whether the gaps line up with the CPU launch thread.
+- **The reported throughput covers the measured step intervals,** not complete training wall time including checkpoint saves.
+- **Single-GPU results do not establish distributed scaling or communication efficiency.**
 
 ## Open questions
 
-- [ ] Which fused SDPA kernel was selected (memory-efficient or cuDNN attention)? Check the kernel names with `profile_attention.py --mode fast`.
-- [ ] How much GPU time does attention take in math vs fused mode? `profile_attention.py`, both modes.
+- [x] Which fused SDPA kernel was selected? Memory-efficient attention (`fmha_cutlassF/B_f32_aligned_64x64_*_sm80`) on both the 4090 and the 5090. See §6.
+- [x] How much GPU time does attention take in math vs fused mode? On the 4090, about 4.2 ms vs 2.9 ms per medium step. See §6.
+- [ ] Does the server's kernel gap line up with CPU launch time? Open `trace_det.json` from the server in ui.perfetto.dev.
+- [ ] Does pinning the server process to the GPU's NUMA node remove the tiny-timing instability and narrow the 43.9 vs 17.4 ms gap?
+- [ ] How much do `foreach=True` / `fused=True` AdamW cut step time on the server, where the optimizer range spans about 12 ms per step?
 - [ ] What is the ~0.5 MiB in the tiny probe's forward that the saved-tensor hook does not see (18.54 measured vs 18.06 expected)? Take a memory snapshot.
 - [ ] Does the medium preset pass `check_resume` with `--no-deterministic --atol 1e-5`? Prediction: check B fails.
-- [ ] How much do `foreach=True` / `fused=True` AdamW cut tiny's step time, if it is launch-bound?
 
 ## Deep dives (answered questions)
 
