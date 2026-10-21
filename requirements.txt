@@ -1,6 +1,12 @@
-# Training, resume checks, and profiling (baseline version).
-# For GPU runs, install a CUDA-enabled PyTorch build matching your environment.
-torch==2.13.0
+# CUDA 13.0 builds of PyTorch. Without this line, pip on Windows installs the CPU-only wheel from PyPI.
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# Tested with 2.13.0 (Day 01, laptop) and 2.14.x (Day 01-02, Linux GPU machines).
+torch>=2.13
+numpy
+
+# Optional. Day 02's launcher uses it to find child processes on platforms without /proc (Windows).
+psutil
 
 # Only needed to regenerate day01/assets/model_architecture.png.
 Pillow>=10.0
