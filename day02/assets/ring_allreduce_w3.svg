@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1320" viewBox="0 0 1200 1320">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b7d"/></marker></defs>
+<rect x="0" y="0" width="1200" height="1320" rx="16" fill="#ffffff" stroke="none" stroke-width="1.5"/>
+<text x="600.0" y="46" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#1f2d3d" text-anchor="middle">Ring all-reduce as simulated by simulate_ring.py (W = 3)</text>
+<text x="600.0" y="76" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="400" fill="#5b6b7d" text-anchor="middle">Each cell lists whose data is already summed into that rank&#x27;s copy of that chunk. Rows are ranks, columns are chunks.</text>
+<line x1="298.4998129952002" y1="118.72253983002342" x2="321.3361870047998" y2="158.2774601699766" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<line x1="312.836" y1="173.0" x2="267.164" y2="173.0" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<line x1="258.6638129952002" y1="158.2774601699766" x2="281.5001870047998" y2="118.72253983002342" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<circle cx="290" cy="104" r="16" fill="#2f6fdb"/>
+<text x="290" y="109" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">r0</text>
+<circle cx="329.836" cy="173.0" r="16" fill="#2f6fdb"/>
+<text x="329.836" y="178.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">r1</text>
+<circle cx="250.164" cy="173.0" r="16" fill="#2f6fdb"/>
+<text x="250.164" y="178.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">r2</text>
+<text x="380" y="142" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">every rank sends to rank r+1</text>
+<text x="380" y="164" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">and receives from rank r−1</text>
+<text x="380" y="186" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">(rank 2 sends to rank 0)</text>
+<rect x="700" y="118" width="30" height="20" rx="4" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="740" y="133" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">1 of 3 ranks summed</text>
+<rect x="700" y="146" width="30" height="20" rx="4" fill="#c9d8f5" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="740" y="161" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">2 of 3</text>
+<rect x="700" y="174" width="30" height="20" rx="4" fill="#2f6fdb" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="740" y="189" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">all 3: fully reduced</text>
+<rect x="940" y="118" width="30" height="20" rx="4" fill="#ffffff" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="980" y="133" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">chunk this rank sends</text>
+<rect x="940" y="146" width="30" height="20" rx="4" fill="#ffffff" stroke="#6b46c1" stroke-width="3"/>
+<text x="980" y="161" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">received and ADDED</text>
+<rect x="940" y="174" width="30" height="20" rx="4" fill="#ffffff" stroke="#1f9d6b" stroke-width="3"/>
+<text x="980" y="189" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">received and OVERWRITTEN</text>
+<rect x="20" y="360" width="1160" height="354" rx="14" fill="#f6f2fe" stroke="#d9cdf6" stroke-width="1.5"/>
+<text x="308.0" y="384" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#6b46c1" text-anchor="start">Phase 1: reduce-scatter, W−1 = 2 steps (repeat for s = 0 … W−2)</text>
+<rect x="20" y="836" width="1160" height="354" rx="14" fill="#effaf5" stroke="#bfe6d4" stroke-width="1.5"/>
+<text x="308.0" y="860" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1f9d6b" text-anchor="start">Phase 2: all-gather, W−1 = 2 steps (repeat for s = 0 … W−2)</text>
+<rect x="40" y="220" width="500" height="100" rx="10" fill="#f6f8fb" stroke="#9aa8b8" stroke-width="1.5"/>
+<text x="58" y="248" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">Start</text>
+<text x="58" y="274" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">state[r][c] = {r} for every chunk c</text>
+<text x="58" y="296" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">each rank holds only its own data</text>
+<text x="706.0" y="234" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 0</text>
+<text x="790.0" y="234" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 1</text>
+<text x="874.0" y="234" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 2</text>
+<text x="600" y="264" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 0</text>
+<rect x="666" y="242" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="706.0" y="264" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0}</text>
+<rect x="750" y="242" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="790.0" y="264" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0}</text>
+<rect x="834" y="242" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="874.0" y="264" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0}</text>
+<text x="600" y="302" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 1</text>
+<rect x="666" y="280" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="706.0" y="302" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1}</text>
+<rect x="750" y="280" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="790.0" y="302" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1}</text>
+<rect x="834" y="280" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="874.0" y="302" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1}</text>
+<text x="600" y="340" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 2</text>
+<rect x="666" y="318" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="706.0" y="340" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{2}</text>
+<rect x="750" y="318" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="790.0" y="340" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{2}</text>
+<rect x="834" y="318" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="874.0" y="340" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{2}</text>
+<line x1="290.0" y1="320" x2="290.0" y2="404" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<rect x="40" y="406" width="500" height="120" rx="10" fill="#ffffff" stroke="#6b46c1" stroke-width="1.5"/>
+<text x="58" y="434" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">Reduce-scatter step s = 0</text>
+<text x="58" y="460" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">send   chunk (r − s) mod W      → rank r+1</text>
+<text x="58" y="482" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">recv   chunk (r − s − 1) mod W  ← rank r−1</text>
+<text x="58" y="504" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">receiver ADDS it to its own copy</text>
+<text x="706.0" y="420" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 0</text>
+<text x="790.0" y="420" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 1</text>
+<text x="874.0" y="420" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 2</text>
+<text x="600" y="450" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 0</text>
+<rect x="666" y="428" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="706.0" y="450" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0}</text>
+<rect x="750" y="428" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="790.0" y="450" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0}</text>
+<rect x="834" y="428" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#6b46c1" stroke-width="3"/>
+<text x="874.0" y="450" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0,2}</text>
+<text x="600" y="488" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 1</text>
+<rect x="666" y="466" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#6b46c1" stroke-width="3"/>
+<text x="706.0" y="488" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0,1}</text>
+<rect x="750" y="466" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="790.0" y="488" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1}</text>
+<rect x="834" y="466" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="874.0" y="488" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1}</text>
+<text x="600" y="526" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 2</text>
+<rect x="666" y="504" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="706.0" y="526" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{2}</text>
+<rect x="750" y="504" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#6b46c1" stroke-width="3"/>
+<text x="790.0" y="526" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1,2}</text>
+<rect x="834" y="504" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="874.0" y="526" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{2}</text>
+<text x="950" y="446" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#5b6b7d" text-anchor="start">this step:</text>
+<text x="950" y="470" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r0 → r1: chunk 0</text>
+<text x="950" y="492" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r1 → r2: chunk 1</text>
+<text x="950" y="514" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r2 → r0: chunk 2</text>
+<rect x="40" y="566" width="500" height="120" rx="10" fill="#ffffff" stroke="#6b46c1" stroke-width="1.5"/>
+<text x="58" y="594" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">Reduce-scatter step s = 1</text>
+<text x="58" y="620" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">send   chunk (r − s) mod W      → rank r+1</text>
+<text x="58" y="642" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">recv   chunk (r − s − 1) mod W  ← rank r−1</text>
+<text x="58" y="664" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">receiver ADDS it to its own copy</text>
+<text x="706.0" y="580" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 0</text>
+<text x="790.0" y="580" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 1</text>
+<text x="874.0" y="580" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 2</text>
+<text x="600" y="610" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 0</text>
+<rect x="666" y="588" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="706.0" y="610" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0}</text>
+<rect x="750" y="588" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#6b46c1" stroke-width="3"/>
+<text x="790.0" y="610" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="834" y="588" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="874.0" y="610" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0,2}</text>
+<text x="600" y="648" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 1</text>
+<rect x="666" y="626" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="706.0" y="648" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0,1}</text>
+<rect x="750" y="626" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="790.0" y="648" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1}</text>
+<rect x="834" y="626" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#6b46c1" stroke-width="3"/>
+<text x="874.0" y="648" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<text x="600" y="686" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 2</text>
+<rect x="666" y="664" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#6b46c1" stroke-width="3"/>
+<text x="706.0" y="686" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="750" y="664" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="790.0" y="686" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1,2}</text>
+<rect x="834" y="664" width="80" height="34" rx="6" fill="#f1f4f8" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="874.0" y="686" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{2}</text>
+<text x="950" y="606" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#5b6b7d" text-anchor="start">this step:</text>
+<text x="950" y="630" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r0 → r1: chunk 2</text>
+<text x="950" y="652" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r1 → r2: chunk 0</text>
+<text x="950" y="674" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r2 → r0: chunk 1</text>
+<rect x="40" y="882" width="500" height="120" rx="10" fill="#ffffff" stroke="#1f9d6b" stroke-width="1.5"/>
+<text x="58" y="910" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">All-gather step s = 0</text>
+<text x="58" y="936" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">send   chunk (r + 1 − s) mod W  → rank r+1</text>
+<text x="58" y="958" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">recv   chunk (r − s) mod W      ← rank r−1</text>
+<text x="58" y="980" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">receiver OVERWRITES its copy</text>
+<text x="706.0" y="896" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 0</text>
+<text x="790.0" y="896" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 1</text>
+<text x="874.0" y="896" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 2</text>
+<text x="600" y="926" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 0</text>
+<rect x="666" y="904" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#1f9d6b" stroke-width="3"/>
+<text x="706.0" y="926" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="750" y="904" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="790.0" y="926" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="834" y="904" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="874.0" y="926" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0,2}</text>
+<text x="600" y="964" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 1</text>
+<rect x="666" y="942" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="706.0" y="964" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{0,1}</text>
+<rect x="750" y="942" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#1f9d6b" stroke-width="3"/>
+<text x="790.0" y="964" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="834" y="942" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="874.0" y="964" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<text x="600" y="1002" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 2</text>
+<rect x="666" y="980" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="706.0" y="1002" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="750" y="980" width="80" height="34" rx="6" fill="#c9d8f5" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="790.0" y="1002" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="middle">{1,2}</text>
+<rect x="834" y="980" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#1f9d6b" stroke-width="3"/>
+<text x="874.0" y="1002" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<text x="950" y="922" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#5b6b7d" text-anchor="start">this step:</text>
+<text x="950" y="946" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r0 → r1: chunk 1</text>
+<text x="950" y="968" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r1 → r2: chunk 2</text>
+<text x="950" y="990" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r2 → r0: chunk 0</text>
+<rect x="40" y="1042" width="500" height="120" rx="10" fill="#ffffff" stroke="#1f9d6b" stroke-width="1.5"/>
+<text x="58" y="1070" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">All-gather step s = 1</text>
+<text x="58" y="1096" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">send   chunk (r + 1 − s) mod W  → rank r+1</text>
+<text x="58" y="1118" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">recv   chunk (r − s) mod W      ← rank r−1</text>
+<text x="58" y="1140" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">receiver OVERWRITES its copy</text>
+<text x="706.0" y="1056" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 0</text>
+<text x="790.0" y="1056" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 1</text>
+<text x="874.0" y="1056" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">chunk 2</text>
+<text x="600" y="1086" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 0</text>
+<rect x="666" y="1064" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="706.0" y="1086" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="750" y="1064" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="790.0" y="1086" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="834" y="1064" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#1f9d6b" stroke-width="3"/>
+<text x="874.0" y="1086" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<text x="600" y="1124" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 1</text>
+<rect x="666" y="1102" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#1f9d6b" stroke-width="3"/>
+<text x="706.0" y="1124" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="750" y="1102" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="790.0" y="1124" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="834" y="1102" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="874.0" y="1124" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<text x="600" y="1162" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank 2</text>
+<rect x="666" y="1140" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="706.0" y="1162" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="750" y="1140" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#1f9d6b" stroke-width="3"/>
+<text x="790.0" y="1162" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<rect x="834" y="1140" width="80" height="34" rx="6" fill="#2f6fdb" stroke="#7a8899" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="874.0" y="1162" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">{0,1,2}</text>
+<text x="950" y="1082" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#5b6b7d" text-anchor="start">this step:</text>
+<text x="950" y="1106" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r0 → r1: chunk 0</text>
+<text x="950" y="1128" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r1 → r2: chunk 1</text>
+<text x="950" y="1150" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">r2 → r0: chunk 2</text>
+<line x1="290.0" y1="526" x2="290.0" y2="564" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<line x1="290.0" y1="686" x2="290.0" y2="724" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<line x1="290.0" y1="816" x2="290.0" y2="880" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<line x1="290.0" y1="1002" x2="290.0" y2="1040" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<line x1="290.0" y1="1162" x2="290.0" y2="1200" stroke="#5b6b7d" stroke-width="2" marker-end="url(#a)"/>
+<rect x="40" y="726" width="500" height="90" rx="10" fill="#f6f8fb" stroke="#9aa8b8" stroke-width="1.5"/>
+<text x="58" y="754" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">Check after phase 1</text>
+<text x="58" y="780" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">rank r owns the fully reduced chunk (r + 1) mod W</text>
+<text x="600" y="760" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#5b6b7d" text-anchor="start">owners of the dark cells above:</text>
+<text x="600" y="784" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="400" fill="#1f2d3d" text-anchor="start">rank 0 → chunk 1, rank 1 → chunk 2, rank 2 → chunk 0</text>
+<rect x="40" y="1202" width="500" height="100" rx="10" fill="#f6f8fb" stroke="#9aa8b8" stroke-width="1.5"/>
+<text x="58" y="1230" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">Done</text>
+<text x="58" y="1256" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">assert every cell = {0,1,2}: each rank counted once</text>
+<text x="58" y="1278" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#5b6b7d" text-anchor="start">2(W−1) = 4 steps; each rank sent 4/3 · S</text>
+<text x="600" y="1236" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#5b6b7d" text-anchor="start">result: every rank holds the full sum</text>
+<text x="600" y="1260" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#5b6b7d" text-anchor="start">in every chunk, i.e. all_reduce(SUM)</text>
+</svg>

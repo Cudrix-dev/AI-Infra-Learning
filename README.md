@@ -44,7 +44,7 @@ Split a model by tensor, sequence, pipeline and expert dimensions, and decouple 
 | --- | --- | --- | --- |
 | 11 | Tensor parallel MLP | Column- then row-parallel linear with custom autograd Functions | Outputs and grads match 1 GPU |
 | 12 | GPipe + 1F1B | 2-stage pipeline; CPU schedule simulator | Bubble and peak in-flight activations for GPipe vs 1F1B |
-| 13 | Process groups + sequence parallel | Rank → (DP, TP, PP) mapping; DP=2 × TP=2 on 4 GPUs | Correct groups; TP vs TP+SP communication drawn |
+| 13 | Process groups + sequence parallel | Rank → (DP, TP, PP) mapping; practise DP=2 or TP=2 on the dual A100, simulate DP=2 × TP=2 with 4 logical ranks on CPU | Correct groups; TP vs TP+SP communication drawn; distinguish simulated mappings from GPU measurements |
 | 14 | MoE + expert parallelism | Top-1 MoE layer (stretch: `all_to_all` dispatch) | Load balance under uniform vs skewed inputs |
 | 15 | Ray + RLlib | 2 CPU rollout actors + 1 GPU learner, tagged with `policy_version` | Time breakdown per phase; staleness explained |
 
@@ -82,17 +82,21 @@ outputs/                Logs, checkpoints and measurements from runs (git-ignore
 
 ## Setup
 
-An NVIDIA GPU whose driver supports CUDA 13.0. Single-GPU days also run on native Windows; multi-GPU days need Linux (or WSL2) for NCCL, with 2 GPUs (4 for Day 13).
+The current experiment environment is **one Linux Vast.ai instance with 2 × NVIDIA A100-SXM4-40GB**, connected by NV12. Use one process per GPU for all GPU experiments, with matching 1-GPU and 2-GPU baselines. Local Windows is used for editing and git. Larger rank layouts may be studied with a CPU simulator; the plan does not assume four or eight physical GPUs.
+
+The accepted image already includes Python 3.12, PyTorch 2.14.1+cu130, CUDA build 13.0 and NCCL 2.30.7; the host driver is 595.71.05. **Activate the existing environment before installing anything:**
 
 ```bash
-pip install torch --index-url https://download.pytorch.org/whl/cu130
-pip install numpy
+cd /workspace/AI-Infra-Learning
+source .venv/bin/activate
+export CUDA_VISIBLE_DEVICES=0,1 OMP_NUM_THREADS=1
+unset NCCL_P2P_DISABLE NCCL_SHM_DISABLE NCCL_ALGO
 ```
 
-Or install everything, including the optional packages, from the requirements file:
+The project `.venv` is a symlink to the template's `/venv/main`. Non-interactive SSH commands may need `/venv/main/bin/python` explicitly. On a fresh environment only, install project dependencies from the requirements file (`torch>=2.13`); do not reinstall the host GPU driver:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Check that PyTorch sees the GPUs:
@@ -101,13 +105,17 @@ Check that PyTorch sees the GPUs:
 python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.device_count())"
 ```
 
-Run every script from the repository root. Each experiment's README lists its commands and flags.
+Run every script from the project root. Each experiment's README lists its commands and flags. The current remote project was uploaded as a minimal experiment copy, not a full git checkout; do not assume `git pull` is available there until a checkout is created.
 
-## Hardware used
+## Current experiment hardware (accepted 2026-10-27)
 
-| Machine | GPUs | Used for |
+| Machine | Configuration | Used for |
 | --- | --- | --- |
-| Laptop | 1 × RTX 5060 Laptop (8 GB), Windows 11 | Day 01 baseline; editing and git |
-| `4090-local` | 2 × RTX 4090 (48 GB), Linux, exclusive | Day 01 on one GPU; 2-GPU correctness (GPU 1 is on a PCIe 4.0 x1 slot) |
-| `server` | 2 × RTX 6000D, Linux, shared | 2-GPU runs; needs `NCCL_P2P_DISABLE=1` |
-| `5090-server2` | 8 × RTX 5090 (32 GB), Linux, shared | Day 01 on one GPU; 4- and 8-GPU scaling |
+| Vast.ai dual A100 | 2 × A100-SXM4-40GB, NV12; default NCCL `P2P/CUMEM/read`; EPYC 7532 host, about 30.72 CPU-equivalents of quota and 129 GB offered RAM | All current and upcoming GPU experiments: 1 → 2 GPU training, communication, profiling and correctness checks |
+| Local Windows workspace | Editor and git | Write/review code and notes; retain downloaded results |
+
+The rented GPUs are allocated exclusively, but the entire host CPU/resources are not reserved. Keep `--condition shared` for the existing measurements and repeat timing experiments against their own baselines. P2P is enabled by default; disabling it is only a command-local comparison experiment.
+
+Day 02 acceptance: ring self-test and parity/negative controls passed; 256 MiB builtin all-reduce took about 1.75 ms (153 GB/s), strong scaling reached about 1.40×, and weak throughput scaling about 1.94×. See [Day 02 notes](day02/notes.md) and the [acceptance report](outputs/vast_acceptance_20261027/report.zh-CN.md) for settings and limits. Historical Day 01 timings retain their original machine provenance and are not A100 baselines.
+
+SSH for this rental: `ssh -p 26936 root@23.127.144.217`; project `/workspace/AI-Infra-Learning`. The endpoint can change after recreating the rental. `/workspace` currently uses container storage, not a persistent volume: download needed results before recycle/destroy. An idle running instance is still billed.
