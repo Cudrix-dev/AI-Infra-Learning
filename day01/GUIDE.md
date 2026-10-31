@@ -27,16 +27,7 @@ Files:
 
 ### 1.1 One training step, as a memory timeline
 
-```
-                 zero_grad    forward            loss    backward                   step
-                 (None)   ───────────────►       ───►   ◄────────────────           ─────►
-params     P  ████████████████████████████████████████████████████████████████████████████  lives forever
-grads      P              .                              ░░░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█  born in backward (AccumulateGrad),
-                          freed here (set_to_none)                                          dies at next zero_grad
-adam m,v  2P  ............................................................................█  born at FIRST step(), lives forever
-acts       A              ░░░░▓▓▓▓▓▓▓▓▓▓▓████████████████▓▓▓▓▓▓░░░░                       grows in forward, shrinks in backward
-logits    BTV                            ████  (dies when nothing references it)
-```
+![One training step, as a memory timeline](assets/memory_timeline.png)
 
 What to notice:
 
