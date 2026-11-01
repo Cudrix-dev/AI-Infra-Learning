@@ -7,19 +7,19 @@ Day 02 left a number on the table: on the medium model with global batch 16, the
 **Done means:**
 
 - [x] `hook_order.py` run for `tiny` and `medium`; you can say why the gradient-ready order is *not* the reverse of the registration order for this model, and what that does to the first bucket layout
-- [x] `MiniDDP` written by you (the **YOU WRITE** parts of `mini_ddp.py`), diffed against the reference
+- [ ] Independent implementation: reproduce `_on_grad_ready` and `_launch_in_order` without looking, then diff against the reference. Only the executable reference is recorded; validation does not establish learner authorship
 - [x] `compare_ddp.py --stage parity` prints `PARITY: ALL CHECKS PASSED`: every variant passes Day 02's checks A/B/C, prints `bitwise == flat_sync: True`, and `bug_early_launch` is `DETECTED`
 - [x] Timing table measured (`--stage timing`, 3 repeats): you can name the **overhead over `none`** of `flat_sync`, per-parameter hooks, your buckets and real DDP, and the peak memory of each
 - [x] Profiler traces (`--stage profile`) analyzed for per-param, `mini_25_rebuild` and `torch_ddp`, including both ranks and aligned SVG timelines; the overlap table and peer-waiting interpretation explained in the notes
 - [x] Ablation and regimes (`--stage ablation`, `--stage regimes`) run: non-gradient-communication overhead and the slower-link regime where overlap beats flat_sync recorded, with individual CPU costs left unisolated
 - [x] DDP call chain traced from `DistributedDataParallel.__init__` to `Reducer::finalize_backward` (Block 3); `day03/notes.md` written
-- [x] You can answer, without notes: *why can DDP hide gradient communication behind backward, and what limits how much it can hide?*
+- [ ] Unaided self-check (not recorded): explain why DDP can hide communication behind backward and what limits it, without reading the assisted answers
 
 ---
 
 ## Read this first: same host, new folder
 
-Same machine and rules as Day 02: **one Vast.ai instance, 2 × A100-SXM4-40GB, NV12, default NCCL settings (Day 02 observed `P2P/CUMEM/read`)**, torch 2.14.1+cu130, NCCL 2.30.7, `--condition shared`. For this measured run, you cloned the project on the server (commit `00f887f6e64b5c4ecdeb96e3fa12c29d97ae1fcf`). If setting up a future instance from an uploaded project instead, copy today's folder from your Windows project root:
+Same machine and rules as Day 02: **one Vast.ai instance, 2 × A100-SXM4-40GB, NV12, default NCCL settings (Day 02 observed `P2P/CUMEM/read`)**, torch 2.14.1+cu130, NCCL 2.30.7, `--condition shared`. The historical server checkout was `00f887f6e64b5c4ecdeb96e3fa12c29d97ae1fcf`, which is not on the published branch history. Exact measured sources are retained locally in `outputs/day03_source_a100_20261028T040220Z/`; the later published code and write-up are in [7cc5f4f](https://github.com/Cudrix-dev/AI-Infra-Learning/commit/7cc5f4fa397e625f47c195927b47962b1496cc81), including the subsequent CUDA Graph extension. If setting up a future instance from an uploaded project instead, copy today's folder from your Windows project root:
 
 ```bash
 scp -P 26936 -r experiments/day03_ddp_hooks root@23.127.144.217:/workspace/AI-Infra-Learning/experiments/
@@ -392,7 +392,7 @@ Before you look, write down a hypothesis for *why* a bucketed variant could be s
 
 ### Write `day03/notes.md`
 
-The notes now contain the completed mechanism summary and self-check answers in §2 and §7, alongside measured results and provenance. These are retrospective explanations, not pre-run predictions. The optional follow-up list is separate from today's completed requirements; the optimizer-only CUDA Graph extension is documented in [CUDA_GRAPH.md](CUDA_GRAPH.md).
+The notes contain assistant-assisted summaries and self-check answers in sections 2 and 7, alongside measured results and provenance. These are retrospective explanations, not pre-run predictions or evidence of independent recall. Claude supplied the original draft and source-reading tables; Codex consolidated the discussion and corrections. Reference experiments are complete, but no independent learner version of the `YOU WRITE` bodies is recorded. Optional research is separate from this remaining learning exercise. See [CUDA_GRAPH.md](CUDA_GRAPH.md) for the completed optimizer-only extension.
 
 ---
 
@@ -407,7 +407,7 @@ What cannot be hidden:
 1. **The tail**: the last bucket starts only when the last gradient is ready, and its full $\alpha + S_\text{last}/\beta$ is exposed. Here the last bucket holds the 16 MiB input embedding.
 2. **Copy-back** into `p.grad` (removed by `gradient_as_bucket_view`).
 3. **Rank skew**: a collective ends when the slower rank arrives.
-4. **Interference**: overlapped NCCL kernels still take SMs and memory bandwidth from compute (the 2-channel intervention did not improve the bucketed variants; this does not rule out every form of contention).
+4. **Interference**: profiled large-bucket overlap coincides with roughly 2–3 ms more non-NCCL GPU activity (30 rank-steps, r = 0.707). This supports interference without isolating a causal penalty; the two-channel intervention also changes bandwidth and cannot refute it. See notes section 6.4, including the low-overlap outlier and profiling caveats.
 5. **The order**: until the layout matches the real ready order (after the rebuild), in-order launching can hold full buckets back.
 
 Overlap has a **price**: hooks, per-parameter copies/scaling and bookkeeping inside backward. In your ablation, no-gradient-communication variants still add **+3.63 ms** (DDP no-op hook, forward buffer sync retained) and **+4.80 ms** (MiniDDP), versus **+2.07 ms** for flat_sync. This supports substantial non-gradient-communication overhead without isolating each CPU component. Under default local batch 8, flat_sync wins. With P2P disabled, MiniDDP and DDP beat flat by about **3.75 ms** and **3.52 ms**. At local batch 32, overhead falls to **1.25–1.46 ms**, with DDP and flat essentially tied. Overlap pays when the communication hidden outweighs added orchestration and any interference.
@@ -520,7 +520,7 @@ Overhead and speedup are calculated within each repeat before taking medians. `n
 
 **Supported:** substantial overhead survives without gradient collectives: MiniDDP rebuild is +5.87 ms versus +4.80 ms with communication disabled; DDP is +4.49 ms versus +3.63 ms with its no-op communication hook. The residual includes copies, bookkeeping and launch costs; DDP's no-op hook also changes normalization behavior and retains forward buffer synchronization, so this is not a pure measurement of autograd-hook CPU time. Mini per-param varies widely (+10.40 to +23.31 ms overhead), so a precise per-collective cost cannot be extracted from two repeats.
 
-**No evidence for the proposed channel-limit improvement:** two-channel MiniDDP rebuild is +7.23 ms, above the default +5.87 ms, and DDP is +5.00 versus +4.49 ms. This intervention did not improve these variants and does not prove that all forms of resource contention are absent. Disabling forward buffer sync gives +4.58 versus +4.49 ms with overlapping ranges; its individual cost is not resolved here. Do not infer CPU slack by subtracting profiled kernel sums from unprofiled step times.
+**No evidence for the proposed channel-limit improvement:** two-channel MiniDDP rebuild is +7.23 ms, above the default +5.87 ms, and DDP is +5.00 versus +4.49 ms. This intervention did not improve these variants. It also reduces potential bandwidth, confounding any reduction in SM occupancy; it cannot refute interference. The 30-rank-step analysis in notes section 6.4 supports interference as an unquantified contributor. Disabling forward buffer sync gives +4.58 versus +4.49 ms with overlapping ranges; its individual cost is not resolved here. Do not infer CPU slack by subtracting profiled kernel sums from unprofiled step times.
 
 ### A.5 Profiler (rank 0, three sampled steps)
 
@@ -555,6 +555,8 @@ For cross-rank timing, use the aligned version first. Each variant's pair uses t
 ![Both ranks aligned within each variant](assets/overlap_timeline_both_ranks.svg)
 
 For rebuilt MiniDDP step #8, rank 1's step begins 14.0276 ms later. Its last NCCL end at local +45.9372 ms is +59.9648 ms on rank 0's axis, versus rank 0's +59.9581 ms: the ends differ by only about 6.6 microseconds. The roughly 14 ms gap in separately zeroed plots is not additional communication time.
+
+The tracked SVGs are compact overviews: GPU intervals are rounded to 0.1 SVG pixel and merged by activity color per stream. CPU ranges and shared origins/scales remain unchanged. Full kernel names and subpixel detail remain in the local raw traces.
 
 Separate local-origin views:
 

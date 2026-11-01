@@ -9,15 +9,17 @@
 
 Day 02 waits for backward to finish before synchronizing roughly 105 MiB of gradients. Day 03 overlaps bucket all-reduces with backward using gradient-ready hooks, fixed collective order and completion dependencies. MiniDDP exposes this mechanism; real DDP manages it in the Reducer. In my default local-batch-8 run, flat_sync remains fastest (38.30 ms), ahead of DDP (40.83 ms) and rebuilt MiniDDP (41.59 ms). No-comm ablations retain substantial overhead, while disabling P2P reverses the ranking. The mechanism works, but its net benefit depends on workload and communication conditions.
 
-## 2. The mechanism in my own words
+## 2. Mechanism recap (assistant-assisted)
 
-1. **Same start.** Broadcast rank 0's parameters *and buffers* (DDP: `_sync_module_states`). Day 02 broadcast parameters only.
-2. **Buckets.** Assign parameters to buckets in expected ready order, closing a bucket once its size reaches the cap (25 MiB; DDP adds a 1 MiB first bucket). One persistent flat buffer per bucket, one view per parameter.
-3. **Hook.** `register_post_accumulate_grad_hook` fires after `AccumulateGrad` has written `p.grad`. The hook copies `p.grad × 1/W` into the bucket slot in one kernel and decrements the bucket's pending count.
-4. **Launch in order.** When a bucket's count reaches 0, launch every *consecutive* ready bucket from `next_bucket` with `all_reduce(async_op=True)`. The fixed order is what keeps every rank's collective sequence identical.
-5. **Finish.** After backward: check every bucket was launched, `wait()` each Work (the current stream waits for NCCL; the CPU does not block), copy buckets back into `p.grad`. DDP queues this as `finalize_backward` with `queue_callback`.
-6. **Rebuild.** The first backward records the real ready order; before the next forward the buckets are rebuilt in that order and rank 0's order is broadcast so all ranks share one layout.
-7. **`grad_as_view`.** `p.grad` becomes the bucket view, so `AccumulateGrad` adds straight into the bucket. This removes the copy-back and one gradient-sized buffer, provided gradients are zeroed in place.
+**Authorship and learning status.** The original §2, §2.1, §2.2 and §3.1/§3.2 tables came from Claude's draft. This recap was subsequently rewritten by Codex from the discussion; retained source-reading tables remain assistant-authored. The self-check answers are also assisted summaries. Reading and discussing them is not evidence of independent recall. No separate learner implementation of the `YOU WRITE` bodies or pre-run Block 1.7 predictions is recorded in this repository.
+
+Think of a bucket as a parcel with several gradient slots. Each hook tells us that one parameter's `.grad` has now been written, so its averaged contribution can be placed in the parcel. The pending counter tracks how many slots are still missing; it does not describe whether a previous parcel has been sent.
+
+Sending needs two permissions: this parcel must be complete, and every earlier parcel must already have been launched. The second rule keeps both ranks communicating about the same parameters even when their hooks arrive at different times. A complete later bucket can therefore wait for an incomplete earlier one. Rebuilding uses the observed gradient order to make that situation less likely, while broadcasting rank 0's layout keeps the ranks consistent.
+
+The CPU launches work rather than waiting for each GPU operation. Stream dependencies put gradient writes before NCCL reads, and NCCL results before copy-back and optimizer reads. While one bucket communicates, backward can produce gradients for later buckets. MiniDDP needs an explicit `finish_grad_sync()`; DDP arranges finalization through the autograd engine. These dependencies ensure correct data use, not simultaneous progress of the two ranks.
+
+Ordinary buckets keep a communication buffer separate from `.grad`. Bucket views make them share storage and avoid copy-back, provided gradients are zeroed in place. This saves duplicate storage, but the step's peak depends on which tensors coexist at that moment; it need not fall by one full gradient buffer.
 
 ### 2.1 Why the ready order is not the reverse registration order
 
@@ -125,7 +127,7 @@ The log ends this stage with `PARITY: ALL CHECKS PASSED`. This verdict covers th
 
 Medium preset: 27,443,200 parameters, 104.69 MiB FP32 gradients; global batch 16 = 2 × 8, TF32 off, deterministic MATH attention. Timing and ablation: 100 steps, five warmup steps excluded; timing has three repeats, ablation two. Core includes forward/loss, backward, synchronization, optimizer and scheduler, but excludes batch generation, zeroing, checks and logging. Synchronize only at its boundaries. Take the slowest rank per step, then the median over measured steps; tables show the median [min–max] over repeats. Overhead and speedup are computed within each repeat before aggregation, so differences/ratios of displayed medians may differ. Ranges are observed repeats, not confidence intervals. Day 02's 41.35 ms used a different harness and must not be directly subtracted from this run's 38.30 ms flat result.
 
-Source commit: `00f887f6e64b5c4ecdeb96e3fa12c29d97ae1fcf`; captured Git status lists only the untracked `.venv`, and the source patch is empty. Captured experiment files are retained under `outputs/day03_source_a100_20261028T040220Z/`; raw-file SHA256 hashes are in `artifact_manifest_a100_20261028T040220Z.json`. Runtime NCCL is 2.30.7 as reported by torch, even though an inherited environment variable named `NCCL_VERSION` says 2.28.3-1; the variable is not evidence of the loaded runtime version. Default transport/channel details from Day 02 are historical context, not newly captured NCCL-debug evidence for this run.
+Published code and write-up: [Day03 commit 7cc5f4f](https://github.com/Cudrix-dev/AI-Infra-Learning/commit/7cc5f4fa397e625f47c195927b47962b1496cc81). This later publication includes the CUDA Graph follow-up; it is not the exact October 28 checkout. The historical server checkout was `00f887f6e64b5c4ecdeb96e3fa12c29d97ae1fcf`, which is not reachable from the published branch history. For exact measured source, use the local [captured source snapshot](../outputs/day03_source_a100_20261028T040220Z/), the closeout Git records and `artifact_manifest_a100_20261028T040220Z.json`. Captured status lists only the untracked `.venv`, and the source patch is empty. Runtime NCCL is 2.30.7 as reported by torch, even though an inherited environment variable named `NCCL_VERSION` says 2.28.3-1; the variable is not evidence of the loaded runtime version. Default transport/channel details from Day 02 are historical context, not newly captured NCCL-debug evidence for this run.
 
 ### 6.2 Timing (`--stage timing`, `a100_20261028T040220Z`)
 
@@ -165,6 +167,8 @@ Source commit: `00f887f6e64b5c4ecdeb96e3fa12c29d97ae1fcf`; captured Git status l
 
 **No evidence for the proposed channel-limit improvement:** two-channel MiniDDP rebuild is +7.23 ms, above the default +5.87 ms, and DDP is +5.00 versus +4.49 ms. This intervention did not improve these variants and does not prove that all forms of resource contention are absent. Disabling forward buffer sync gives +4.58 versus +4.49 ms with overlapping ranges; its individual cost is not resolved here. Do not infer CPU slack by subtracting profiled kernel sums from unprofiled step times.
 
+The channel intervention mixes reduced resource occupancy with potentially reduced communication bandwidth, so it cannot refute interference. In profiled runs, concurrent large-bucket NCCL kernels coincide with roughly 2–3 ms more non-NCCL GPU activity. Interference remains a supported but unquantified contributor; §6.4 gives the descriptive evidence and its limits.
+
 ### 6.4 Profiler: structure and rank skew
 
 For cross-rank arrival and completion timing, use this aligned figure. Each variant's rank pair shares the earlier step start as zero, using trace timestamps after checking matching host and clock-base metadata. Different variants remain separate runs. Labels include each rank's step-start offset.
@@ -172,6 +176,8 @@ For cross-rank arrival and completion timing, use this aligned figure. Each vari
 ![Both ranks aligned within each variant; compare corresponding NCCL ends on the same time axis](assets/overlap_timeline_both_ranks.svg)
 
 For `mini_25_rebuild`, step #8, rank 1 starts its step 14.0276 ms after rank 0. The last NCCL ends at local +59.9581 ms on rank 0 and +45.9372 ms on rank 1. With rank 0's origin, rank 1's end is +59.9648 ms: only about 6.6 microseconds later, not 14 ms earlier. The apparent gap in the separately zeroed figures below is a coordinate-origin difference, not additional post-peer communication or waiting.
+
+The tracked SVGs use a compact overview: GPU interval endpoints are rounded to 0.1 SVG pixel and touching intervals of the same color/stream are merged. Original clocks, CPU ranges and time scales are retained; raw traces hold individual kernel names and finer detail. This affects display only, not the statistics.
 
 Rank 0:
 
@@ -207,6 +213,22 @@ Both ranks' raw traces were reanalyzed:
 
 The large rank asymmetry supports waiting for the peer / rank skew as an explanation for long NCCL intervals; it does not isolate transfer versus waiting exactly. A 37.09 ms rank-0 NCCL interval cannot be treated as the transfer cost when rank 1 records 0.94 ms in the same DDP run. Profiling also changes execution timing: rank-0 median profiled steps are 59.34–83.60 ms, while ordinary timing records 38.30 ms for flat and 40.83 ms for DDP. These are different measurement windows, so do not subtract their columns to infer CPU idle time or benchmark overhead. Use unprofiled timing/ablations for cost. See the raw traces, original `profile_summary`, derived `profile_both_ranks` and `profile_per_step` JSON files for this run.
 
+#### Profile evidence consistent with compute/communication interference
+
+Recomputing all five variants × two ranks × three steps gives **30 rank-steps** and Pearson correlation **r = 0.707** between overlapped time and the union of non-NCCL GPU activity. The [per-step data](assets/profile_interference.json) is regenerated from raw traces by `python experiments/day03_ddp_hooks/analyze_interference.py`.
+
+| Profile observation | Overlap ms | Non-NCCL GPU activity ms |
+| --- | --- | --- |
+| flat_sync, both ranks, all six steps | 0 | 27.72–27.82 |
+| mini_25 rank 1, steps 7–8 | 10.81–10.86 | 29.75–29.79 |
+| mini rebuild rank 0, all three steps | 13.69–17.60 | 30.23–31.06 |
+| DDP rank 0, all three steps | 15.52–17.69 | 30.66–31.14 |
+| per-parameter rank 1, all three steps | 14.04–14.92 | 28.13–28.41 |
+
+Large-bucket overlap is associated with about 2–3 ms more non-NCCL activity than the roughly 27.8 ms baseline; small-message overlap shows a much smaller increase. This is consistent with NCCL occupying SM/memory resources, including while waiting for the peer. Actual channel counts per message were not captured, so fewer channels for small messages remain a possible explanation rather than a measured fact.
+
+This is not a controlled comparison of matched kernel durations or an isolated interference penalty. For example, DDP rank 1 step 6 has **32.15 ms** non-NCCL activity with only **0.35 ms** overlap: other variation also matters. The 30 samples share ranks, steps and configurations and are not independent trials. Profiling inflates rank skew, and the two-channel ablation also changes bandwidth. These observations support interference as a contributor but neither assign it an unprofiled 2–3 ms cost nor explain all non-NCCL variation.
+
 #### Observed optimizer submission gaps explain how rank skew can reappear
 
 The aligned `mini_25_rebuild` step #8 gives more specific evidence than a hypothetical GPU compute-speed difference. CPU optimizer-scope operations were matched to GPU kernels by `External id`, and GPU kernels to CUDA runtime launches by correlation ID. All 624 optimizer kernels on each rank matched a launch. Times below share rank 0's step origin:
@@ -232,7 +254,7 @@ This strongly supports a host-submission-limited optimizer in this profiled step
 | MiniDDP rebuild | 42.94 | 49.65 | 41.03 | 4.44% |
 | PyTorch DDP | 41.51 | 48.85 | 39.06 | 5.88% |
 
-These are three-repeat unprofiled summary medians (60 steps, 10 excluded). Ready eager and graph use identical capturable AdamW, tensor LR and persistent independent gradients; they match bitwise on tiny saved tensors/losses and on all medium timing loss curves. Their 17.35% / 20.03% replay improvement must not be confused with the smaller net gain over original AdamW. Original and capturable arithmetic are not bitwise equivalent. Peak allocation rises from approximately 1117 to 1224 MiB.
+These are three-repeat unprofiled summary medians (60 steps, 10 excluded). Ready eager and graph use identical capturable AdamW, tensor LR and persistent independent gradients; they match bitwise on tiny saved tensors/losses and on all medium timing loss curves. Their 17.35% / 20.03% replay improvement must not be confused with the smaller net gain over original AdamW. Original and capturable arithmetic are not bitwise equivalent. Peak allocation rises from approximately 1117 to 1224 MiB. The ~107 MiB increase is close to one gradient buffer P = 104.7 MiB: in-place zeroing retains independent `.grad` tensors through the early-backward peak, whereas the original releases them with `set_to_none=True`. This is the likely main cause, consistent with section 7; no allocation timeline isolates the small remainder. Ready eager has the same peak as graph, so the increase is not evidence of a Graph-only cost.
 
 The profiled optimizer has 1950 kernels in both graph-ready modes; replay packs them into about 4.6 ms with only 0.095–0.100 ms of internal gaps across ranks/implementations. Original AdamW has 624 kernels with about 2.2 ms busy time, but sampled gaps range from 1.44 to 18.52 ms. Thus Graph reduces submission gaps without fusing the optimizer or making its arithmetic cheaper. Do not subtract profiled gaps from unprofiled steps.
 
@@ -269,7 +291,7 @@ The model needs the following qualifications:
 
 - **Correctness:** all normal variants pass the single-GPU checks; the three saved tensor checkpoints match dual-rank flat_sync exactly. `early_launch` is detected. `no_wait` passes the initial check but diverges across ranks later.
 - **Default timing:** flat_sync is 38.30 ms (1.32× versus one GPU), DDP 40.83 ms (1.24×), rebuilt MiniDDP 41.59 ms (1.21×), per-param 57.46 ms (0.88×). Overlap does not beat flat on this workload.
-- **Ablation:** much of the bucketed overhead remains without gradient communication. The channel cap does not improve bucketed performance. Costs per Python hook, copy launch or process-group call are not individually isolated.
+- **Ablation and interference:** much of the bucketed overhead remains without gradient communication. Profiled large-bucket overlap also coincides with longer non-NCCL GPU activity. The channel cap does not improve performance, but its bandwidth/occupancy confound cannot refute interference. Costs per Python hook, copy launch or process-group call are not individually isolated.
 - **Different conditions:** P2P-disabled overlap beats flat by about 3.75 ms for MiniDDP and 3.52 ms for DDP. At local batch 32, DDP and flat are effectively tied.
 - **Memory and traces:** bucket views do not lower the measured peak; ordinary bucketed variants peak roughly P higher than flat. NCCL duration includes waiting and is strongly rank-dependent, so profile overlap is not saved time.
 
@@ -306,7 +328,7 @@ The amount hidden depends on how much later backward work is available, bucket l
 
 **Why use DDP if flat_sync wins in this default case?** This small FP32 workload on fast NVLink exposes orchestration costs that can outweigh the communication saved. In the measured slower-link regime, DDP beats flat_sync by about 3.52 ms. DDP also manages model/buffer synchronization, bucket rebuilding, unused-parameter handling, accumulation through `no_sync()`, communication hooks and join behavior that MiniDDP does not implement generally. The experiment demonstrates a tradeoff and a working mechanism, rather than a universal ranking of implementations.
 
-**Day 03 outcome.** The executable MiniDDP and real DDP paths have been checked against references and negative controls; timing, ablation and regimes have been measured; both ranks' traces have been analyzed with aligned timelines; and the Reducer call chain has been mapped to the minimal implementation. The optimizer-only CUDA Graph follow-up passes its matched correctness checks and improves unprofiled step time in the new NV12 run. The main exercise is complete. Individual CPU-cost decomposition, alternative optimizers/execution modes and larger-world tests below remain optional research, not missing evidence for the conclusions already stated.
+**Day 03 outcome.** The executable MiniDDP and real DDP paths have been checked against references and negative controls; timing, ablation and regimes have been measured; both ranks' traces have been analyzed with aligned timelines; and the Reducer call chain has been mapped to the minimal implementation. The optimizer-only CUDA Graph follow-up passes its matched correctness checks and improves unprofiled step time in the new NV12 run. The reference experiments and assisted walkthrough are complete. Independent implementation and unaided recall are not established: the learner should still reproduce `_on_grad_ready` and `_launch_in_order` without the reference and explain section 2 from memory. Individual CPU-cost decomposition, alternative optimizers/execution modes and larger-world tests below remain optional research.
 
 ## Optional follow-up experiments
 

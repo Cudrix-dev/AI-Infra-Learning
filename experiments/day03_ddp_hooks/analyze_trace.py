@@ -133,14 +133,22 @@ def svg_panels(panels: list[tuple[str, dict, list[dict], list[dict]]], out: Path
             # a synchronous all_reduce (async_op=False, flat_sync) runs its NCCL kernel on the CURRENT stream
             kind = "+".join(k for k, s_ in (("compute", comp_streams), ("NCCL", nccl_streams)) if st in s_)
             parts.append(f'<text x="4" y="{y + 13}" font-size="11">stream {st[1]} ({kind})</text>')
+            colored = {}
             for e in inside:
                 if (e.get("args", {}).get("device", 0), e.get("args", {}).get("stream", e.get("tid"))) != st:
                     continue
                 c = COL["nccl"] if is_nccl(e) else (COL["compute"] if e.get("cat") == "kernel" else COL["copy"])
-                x, w = left + (e["ts"] - origin) * sx, max(e["dur"] * sx, 0.6)
-                name = e["name"][:80].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")  # cut, then escape
-                parts.append(f'<rect x="{x:.1f}" y="{y}" width="{w:.1f}" height="{row_h}" fill="{c}">'
-                             f'<title>{name} {e["dur"]:.0f} us</title></rect>')
+                # Compact overview: quantize endpoints to 0.1 SVG pixel, merge
+                # touching intervals of the same color, and batch into one path.
+                # No artificial minimum kernel width; raw traces retain detail.
+                x0 = round(left + (e["ts"] - origin) * sx, 1)
+                x1 = round(left + (e["ts"] + e["dur"] - origin) * sx, 1)
+                if x1 > x0:
+                    colored.setdefault(c, []).append((x0, x1))
+            for c, intervals in colored.items():
+                path = "".join(f'M{a:.1f},{y}h{b-a:.1f}v{row_h}h{a-b:.1f}z' for a, b in union(intervals))
+                parts.append(f'<path d="{path}" fill="{c}"><title>GPU activity overview; '
+                             '0.1 pixel resolution. See raw trace for kernel details.</title></path>')
             y += row_h + gap
         y += 14
     ticks = []

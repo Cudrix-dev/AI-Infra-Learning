@@ -104,9 +104,15 @@ Percentage reductions use these summary medians.
 adaptation first makes eager slower. Most forward/backward and communication
 submission still runs eagerly, and the graph-safe optimizer does more device
 operations than the original. Peak allocated memory is approximately 1117 MiB
-for original versus 1224 MiB for both ready eager and graph: persistent gradients
-and the adapted optimizer's allocation pattern cost memory here. This experiment
-does not isolate each contributor to that peak difference.
+for original versus 1224 MiB for both ready eager and graph. The increase of
+about **107 MiB is approximately one gradient buffer P = 104.7 MiB**. The likely
+main cause is gradient lifetime: in-place zeroing keeps independent `.grad`
+tensors alive through the early-backward peak, whereas `set_to_none=True` in
+the original releases them. This follows the lifetime argument in notes §7.
+The equal ready-eager and graph peaks support a shared adaptation cost rather
+than a Graph-only cost. Without an allocation timeline or a one-variable memory
+ablation, this does not exactly attribute the remaining few MiB or exclude other
+optimizer/allocator contributions.
 
 ### What changed in the profiler
 
@@ -130,7 +136,7 @@ the 1950 optimizer kernels run tightly packed. This directly supports the
 submission-gap hypothesis. Profiled graph CPU scopes still take roughly 2–4 ms;
 they are instrumented and include scheduler work, not a bare launch microbenchmark.
 
-Both ranks, same step ID, shared time origin within each mode:
+Both ranks, same step ID, shared time origin within each mode. Tracked SVGs quantize GPU intervals to 0.1 SVG pixel and merge touching same-color intervals per stream; CPU ranges and scales are preserved. Full per-kernel detail stays in the raw traces; numerical statistics use the unrounded timestamps:
 
 ![MiniDDP optimizer graph comparison](assets/cuda_graph_mini_ddp.svg)
 

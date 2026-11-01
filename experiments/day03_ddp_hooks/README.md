@@ -2,6 +2,8 @@
 
 `MiniDDP` launches bucketed, asynchronous `all_reduce`s from `register_post_accumulate_grad_hook` during backward, the way `DistributedDataParallel`'s C++ `Reducer` does. One harness (`train_ddp.py`) runs Day 02's synchronous flat sync, `MiniDDP` (per-parameter or bucketed, with optional rebuild and `grad_as_view`) and real DDP on the same model, data and optimizer, so parity, timing and profiler traces are directly comparable.
 
+The checked-in MiniDDP is the executable reference; no independently authored learner copy is recorded. The `YOU WRITE` exercise remains a separate recall/implementation task.
+
 Walkthrough: [`day03/GUIDE.md`](../../day03/GUIDE.md). Write-up: [`day03/notes.md`](../../day03/notes.md).
 
 ## Experiment host
@@ -54,3 +56,5 @@ The regular harness still defaults to `--optimizer-mode original`.
 - Timing: core step only, `torch.cuda.synchronize()` at its two ends (phase boundaries would hide the overlap), slowest rank per step, median over steps; overhead = core(variant) − core(`none`) of the same repeat.
 - Profiled runs record ~5,000 CPU ops per step and are much slower than unprofiled ones; use them for structure (which stream, how many kernels, when), and the timing/ablation stages for cost.
 - torch 2.14 renamed DDP's `broadcast_buffers` to `forward_sync_buffers` (the old name warns).
+
+`analyze_interference.py` recomputes the 30 rank-step overlap/non-NCCL activity association from saved traces and writes the small tracked `day03/assets/profile_interference.json` summary. SVG timelines are compact, 0.1-pixel overviews; statistics and raw traces keep their original precision.
