@@ -57,4 +57,4 @@ The regular harness still defaults to `--optimizer-mode original`.
 - Profiled runs record ~5,000 CPU ops per step and are much slower than unprofiled ones; use them for structure (which stream, how many kernels, when), and the timing/ablation stages for cost.
 - torch 2.14 renamed DDP's `broadcast_buffers` to `forward_sync_buffers` (the old name warns).
 
-`analyze_interference.py` recomputes the 30 rank-step overlap/non-NCCL activity association from saved traces and writes the small tracked `day03/assets/profile_interference.json` summary. SVG timelines are compact, 0.1-pixel overviews; statistics and raw traces keep their original precision.
+`analyze_interference.py` recomputes the 30 rank-step overlap/non-NCCL activity association from saved traces and writes the small tracked `day03/assets/profile_interference.json` summary.

@@ -177,8 +177,6 @@ For cross-rank arrival and completion timing, use this aligned figure. Each vari
 
 For `mini_25_rebuild`, step #8, rank 1 starts its step 14.0276 ms after rank 0. The last NCCL ends at local +59.9581 ms on rank 0 and +45.9372 ms on rank 1. With rank 0's origin, rank 1's end is +59.9648 ms: only about 6.6 microseconds later, not 14 ms earlier. The apparent gap in the separately zeroed figures below is a coordinate-origin difference, not additional post-peer communication or waiting.
 
-The tracked SVGs use a compact overview: GPU interval endpoints are rounded to 0.1 SVG pixel and touching intervals of the same color/stream are merged. Original clocks, CPU ranges and time scales are retained; raw traces hold individual kernel names and finer detail. This affects display only, not the statistics.
-
 Rank 0:
 
 ![Rank 0: median-length profiled step per variant from a100_20261028T040220Z](assets/overlap_timeline.svg)

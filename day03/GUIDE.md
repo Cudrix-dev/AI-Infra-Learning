@@ -556,8 +556,6 @@ For cross-rank timing, use the aligned version first. Each variant's pair uses t
 
 For rebuilt MiniDDP step #8, rank 1's step begins 14.0276 ms later. Its last NCCL end at local +45.9372 ms is +59.9648 ms on rank 0's axis, versus rank 0's +59.9581 ms: the ends differ by only about 6.6 microseconds. The roughly 14 ms gap in separately zeroed plots is not additional communication time.
 
-The tracked SVGs are compact overviews: GPU intervals are rounded to 0.1 SVG pixel and merged by activity color per stream. CPU ranges and shared origins/scales remain unchanged. Full kernel names and subpixel detail remain in the local raw traces.
-
 Separate local-origin views:
 
 ![Rank 0: median-length profiled step per variant](assets/overlap_timeline.svg)

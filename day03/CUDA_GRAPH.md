@@ -136,7 +136,7 @@ the 1950 optimizer kernels run tightly packed. This directly supports the
 submission-gap hypothesis. Profiled graph CPU scopes still take roughly 2–4 ms;
 they are instrumented and include scheduler work, not a bare launch microbenchmark.
 
-Both ranks, same step ID, shared time origin within each mode. Tracked SVGs quantize GPU intervals to 0.1 SVG pixel and merge touching same-color intervals per stream; CPU ranges and scales are preserved. Full per-kernel detail stays in the raw traces; numerical statistics use the unrounded timestamps:
+Both ranks, same step ID, shared time origin within each mode:
 
 ![MiniDDP optimizer graph comparison](assets/cuda_graph_mini_ddp.svg)
 
