@@ -119,8 +119,6 @@ def run(args) -> None:
     global OUT
     if args.output_root:
         OUT = Path(args.output_root).resolve()
-    if args.optimizer_mode != "original" and args.grad_as_view:
-        raise SystemExit("optimizer capture experiment uses persistent independent grads; omit --grad-as-view")
     rank, world, device = init_dist(args)
     cfg = Config(**PRESETS[args.preset])
     cfg.total_steps = args.steps
@@ -137,9 +135,35 @@ def run(args) -> None:
     names = list(named.keys())
     net, finish = wrap(model, args, world, device)
     optimizer_update = None
+    graph_bootstrap = None
     if args.optimizer_mode != "original":
+        if args.grad_as_view:
+            # Exercise hooks and the one-time rebuild without taking optimizer
+            # updates. The last two backwards must use the same view addresses.
+            cpu_rng, cuda_rng = torch.get_rng_state(), torch.cuda.get_rng_state_all()
+            addresses = []
+            for _ in range(3):
+                model.zero_grad(set_to_none=False)
+                x, y = get_batch(cfg, 0, device)
+                x, y = x[rank * local_bs:(rank + 1) * local_bs], y[rank * local_bs:(rank + 1) * local_bs]
+                with attention_ctx(cfg):
+                    logits = net(x)
+                    loss = F.cross_entropy(logits.reshape(-1, cfg.vocab_size), y.reshape(-1))
+                loss.backward()
+                finish()
+                torch.cuda.synchronize(device)
+                addresses.append([p.grad.data_ptr() for p in params])
+                del x, y, logits, loss
+            if addresses[-1] != addresses[-2]:
+                raise RuntimeError("bucket-view addresses have not stabilized after rebuild")
+            if not all(p.grad._base is not None for p in params):
+                raise RuntimeError("expected gradient tensors to remain bucket views")
+            torch.set_rng_state(cpu_rng)
+            torch.cuda.set_rng_state_all(cuda_rng)
+            graph_bootstrap = {"backwards": 3, "optimizer_updates": 0,
+                               "last_two_addresses_equal": True, "all_grads_are_views": True}
         optimizer, scheduler, optimizer_update = prepare_optimizer(
-            model, cfg, device, args.optimizer_mode, lr_lambda)
+            model, cfg, device, args.optimizer_mode, lr_lambda, preserve_grad_views=args.grad_as_view)
 
     syncs = args.impl != "none" and not args.no_comm  # do ranks stay identical in this mode?
     if args.impl != "none":
@@ -162,7 +186,10 @@ def run(args) -> None:
             raise SystemExit(f"--profile needs --steps >= {p0 + args.profile_steps + 1}")
         out = OUT / args.tag
         out.mkdir(parents=True, exist_ok=True)
-        prof = profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+        # cpu,cuda records every CPU op (~5k per medium step) and perturbs CPU submission timing; cuda records only
+        # CUPTI GPU activity, so ProfilerStep/record_function ranges and CPU launch events are absent from the trace.
+        acts = [ProfilerActivity.CUDA] if args.profile_activities == "cuda" else [ProfilerActivity.CPU, ProfilerActivity.CUDA]
+        prof = profile(activities=acts,
                        schedule=schedule(skip_first=p0 - 1, wait=0, warmup=1, active=args.profile_steps, repeat=1),
                        on_trace_ready=lambda p: p.export_chrome_trace(str(out / f"trace_rank{rank}.json")))
         prof.start()
@@ -271,6 +298,7 @@ def run(args) -> None:
                     mini_final_layout=net.layout() if isinstance(net, MiniDDP) else None,
                     mini_ready_order=ready_names)
         meta.update(optimizer_mode=args.optimizer_mode,
+                    graph_bootstrap=graph_bootstrap,
                     lr_used=[v.item() if isinstance(v, torch.Tensor) else v for v in lr_used],
                     adam_steps=[v["step"].item() for v in optimizer.state.values()],
                     scheduler_last_epoch=scheduler.last_epoch,
@@ -314,6 +342,8 @@ def parse_args():
     p.add_argument("--warmup", type=int, default=3, help="steps excluded from timing and peak memory")
     p.add_argument("--profile", action="store_true", help="write torch.profiler chrome traces (one per rank)")
     p.add_argument("--profile-steps", type=int, default=3)
+    p.add_argument("--profile-activities", choices=["cpu,cuda", "cuda"], default="cpu,cuda",
+                   help="what --profile records; cuda omits CPU-op tracing (lower host overhead)")
     p.add_argument("--device", choices=["cpu", "cuda"], default="cuda")
     p.add_argument("--condition", choices=["exclusive", "shared", "unknown"], default="unknown")
     p.add_argument("--tag", required=True)

@@ -604,3 +604,11 @@ cross-rank synchronization or a whole-step graph result.
 ### A.8 What this does not establish
 
 Only two GPUs on one node, shared host conditions, FP32 and one small model. No per-call CPU cost isolation, no exact transfer/wait decomposition, no Day 03 allocation timeline, and no W >= 3 GPU numerics. The remaining local-batch-32 overhead (about 1.25–1.46 ms) is not decomposed. Profiled and unprofiled timings must not be subtracted to infer idle time. Rankings are specific to this run and workload.
+
+### A.9 Graph plus bucket views (November 2)
+
+The [bucket-view follow-up](CUDA_GRAPH.md#bucket-view-follow-up-removing-the-gradient-copy-back) tests whether the remaining gradient copy-back keeps the ranks apart. It captures the optimizer only after bucket rebuild and gradient-view addresses stabilize. Both implementations pass matched parity and medium loss checks. All sampled rank-steps remove 78 gradient DtoD copy-backs (104.6875 MiB); other memcpy remains. The matched peak falls from 1223.90 to 1119.21 MiB.
+
+Unprofiled typical absolute core-start offsets fall from 1.524 to 0.684 ms for MiniDDP and from 2.106 to 0.412 ms for DDP; end offsets fall to about 0.296 ms for both. This supports reduced skew rather than lockstep. Three-repeat timing summaries favor views (39.25 to 38.30 ms; 39.48 to 37.35 ms), but ranges overlap and the per-repeat direction is not consistent.
+
+Profiled view runs, by contrast, end several milliseconds apart. Re-running the views configuration with [only the profiler changed](CUDA_GRAPH.md#profiler-on-versus-off-the-trace-is-a-different-execution) (same boundary metric, same steps, 3 repeats) gives end-offset medians of 0.145 / 0.308 ms without a profiler (MiniDDP / DDP), 1.939 / 3.260 ms with a CUDA-only profiler, and 2.303 / 3.480 ms with CPU+CUDA; steps lengthen by 10–20 ms. The traces record their own run's offset accurately (within 0.005 ms of the boundaries), but profiling creates it, so read rank alignment from unprofiled boundaries and use traces for structure.

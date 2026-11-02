@@ -6,7 +6,7 @@ gradient tensors. The legacy harness defaults remain unchanged.
 import torch
 
 
-def prepare_optimizer(model, cfg, device, mode, lr_lambda):
+def prepare_optimizer(model, cfg, device, mode, lr_lambda, preserve_grad_views=False):
     if device.type != "cuda":
         raise ValueError("the optimizer graph experiment requires CUDA")
     params = list(model.parameters())
@@ -15,7 +15,12 @@ def prepare_optimizer(model, cfg, device, mode, lr_lambda):
         foreach=False, fused=False, capturable=True)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda s: lr_lambda(s, cfg))
     for p in params:
-        p.grad = torch.zeros_like(p)
+        if preserve_grad_views:
+            if p.grad is None or p.grad._base is None:
+                raise RuntimeError("bucket views must be established before optimizer preparation")
+            p.grad.zero_()
+        else:
+            p.grad = torch.zeros_like(p)
     originals = [p.detach().clone() for p in params]
     # Warm allocator and AdamW's lazy state on a side stream. These are dummy
     # updates; restore parameters AND moments/counters before the first real step.
