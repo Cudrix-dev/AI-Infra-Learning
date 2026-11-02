@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif">
+<rect x="0" y="0" width="1200" height="720" rx="16" fill="#ffffff"/>
+<text x="600.0" y="42" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#1f2d3d" text-anchor="middle">One optimizer step = K = 4 microbatches on one rank: when do gradients travel?</text>
+<text x="600.0" y="66" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="middle">medium model, DDP buckets 1/25 MiB (4 buckets) · time flows right · schematic, not to scale</text>
+<rect x="20" y="92" width="1160" height="170" rx="14" fill="#f6f8fb" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="40" y="122" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">DDP, sync every microbatch</text>
+<text x="40" y="144" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="start">every forward arms the Reducer: K x (4 bucket all-reduces) and K buffer broadcasts; correct, but K times the traffic</text>
+<text x="198" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="end">compute stream</text>
+<text x="198" y="232.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="end">NCCL stream</text>
+<rect x="210" y="212" width="16" height="30" rx="5" fill="#b794f4" stroke="none" stroke-width="1.5"/>
+<rect x="210" y="164" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="233.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F1</text>
+<rect x="256" y="164" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="311.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B1</text>
+<rect x="274" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="299" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="324" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="349" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="370" y="212" width="16" height="30" rx="5" fill="#b794f4" stroke="none" stroke-width="1.5"/>
+<rect x="370" y="164" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="393.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F2</text>
+<rect x="416" y="164" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="471.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B2</text>
+<rect x="434" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="459" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="484" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="509" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="530" y="212" width="16" height="30" rx="5" fill="#b794f4" stroke="none" stroke-width="1.5"/>
+<rect x="530" y="164" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="553.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F3</text>
+<rect x="576" y="164" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="631.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B3</text>
+<rect x="594" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="619" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="644" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="669" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="690" y="212" width="16" height="30" rx="5" fill="#b794f4" stroke="none" stroke-width="1.5"/>
+<rect x="690" y="164" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="713.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F4</text>
+<rect x="736" y="164" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="791.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B4</text>
+<rect x="754" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="779" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="804" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="829" y="212" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="864" y="164" width="70" height="30" rx="5" fill="#e3e8ef" stroke="none" stroke-width="1.5"/>
+<text x="899.0" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">optimizer</text>
+<text x="948" y="184.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#6b46c1" text-anchor="start">16 all-reduces + 4 broadcasts</text>
+<text x="948" y="202.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6b7d" text-anchor="start">per optimizer step</text>
+<rect x="20" y="278" width="1160" height="170" rx="14" fill="#f6f8fb" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="40" y="308" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">DDP, no_sync() around microbatches 1..K-1</text>
+<text x="40" y="330" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="start">forward under no_sync does not call prepare_for_backward: hooks fire and return; p.grad accumulates locally; one sync</text>
+<text x="198" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="end">compute stream</text>
+<text x="198" y="418.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="end">NCCL stream</text>
+<rect x="210" y="398" width="16" height="30" rx="5" fill="#b794f4" stroke="none" stroke-width="1.5"/>
+<rect x="210" y="350" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="233.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F1</text>
+<rect x="256" y="350" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="311.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B1</text>
+<text x="311.0" y="418.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#3aa17e" text-anchor="middle">hooks return early</text>
+<rect x="370" y="350" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="393.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F2</text>
+<rect x="416" y="350" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="471.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B2</text>
+<text x="471.0" y="418.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#3aa17e" text-anchor="middle">hooks return early</text>
+<rect x="530" y="350" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="553.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F3</text>
+<rect x="576" y="350" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="631.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B3</text>
+<text x="631.0" y="418.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#3aa17e" text-anchor="middle">hooks return early</text>
+<rect x="690" y="350" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="713.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F4</text>
+<rect x="736" y="350" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="791.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B4</text>
+<rect x="754" y="398" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="779" y="398" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="804" y="398" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="829" y="398" width="19" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<rect x="864" y="350" width="70" height="30" rx="5" fill="#e3e8ef" stroke="none" stroke-width="1.5"/>
+<text x="899.0" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">optimizer</text>
+<text x="948" y="370.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#6b46c1" text-anchor="start">4 all-reduces + 1 broadcast</text>
+<text x="948" y="388.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6b7d" text-anchor="start">per optimizer step</text>
+<rect x="20" y="464" width="1160" height="170" rx="14" fill="#f6f8fb" stroke="#d5dde7" stroke-width="1.5"/>
+<text x="40" y="494" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#1f2d3d" text-anchor="start">Day 02 flat, accumulate then sync once</text>
+<text x="40" y="516" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#5b6b7d" text-anchor="start">no hooks: just do not call sync_grads until the last microbatch; the one all-reduce is not overlapped</text>
+<text x="198" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="end">compute stream</text>
+<text x="198" y="604.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="end">NCCL stream</text>
+<rect x="210" y="536" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="233.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F1</text>
+<rect x="256" y="536" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="311.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B1</text>
+<text x="311.0" y="604.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#3aa17e" text-anchor="middle"></text>
+<rect x="370" y="536" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="393.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F2</text>
+<rect x="416" y="536" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="471.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B2</text>
+<text x="471.0" y="604.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#3aa17e" text-anchor="middle"></text>
+<rect x="530" y="536" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="553.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F3</text>
+<rect x="576" y="536" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="631.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B3</text>
+<text x="631.0" y="604.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#3aa17e" text-anchor="middle"></text>
+<rect x="690" y="536" width="46" height="30" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="713.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">F4</text>
+<rect x="736" y="536" width="110" height="30" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="791.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">B4</text>
+<text x="791.0" y="604.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#3aa17e" text-anchor="middle"></text>
+<rect x="850" y="536" width="34" height="30" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<text x="867.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">AR</text>
+<rect x="888" y="536" width="70" height="30" rx="5" fill="#e3e8ef" stroke="none" stroke-width="1.5"/>
+<text x="923.0" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2d3d" text-anchor="middle">optimizer</text>
+<text x="972" y="556.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#6b46c1" text-anchor="start">1 all-reduce</text>
+<text x="972" y="574.0" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6b7d" text-anchor="start">per optimizer step</text>
+<rect x="40" y="656" width="18" height="18" rx="5" fill="#c9d8f5" stroke="none" stroke-width="1.5"/>
+<text x="66" y="670" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2d3d" text-anchor="start">forward</text>
+<rect x="151.39999999999998" y="656" width="18" height="18" rx="5" fill="#2f6fdb" stroke="none" stroke-width="1.5"/>
+<text x="177.39999999999998" y="670" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2d3d" text-anchor="start">backward</text>
+<rect x="271.0" y="656" width="18" height="18" rx="5" fill="#6b46c1" stroke="none" stroke-width="1.5"/>
+<text x="297.0" y="670" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2d3d" text-anchor="start">all-reduce (bucket)</text>
+<rect x="480.79999999999995" y="656" width="18" height="18" rx="5" fill="#b794f4" stroke="none" stroke-width="1.5"/>
+<text x="506.79999999999995" y="670" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2d3d" text-anchor="start">buffer broadcast</text>
+<rect x="666.0" y="656" width="18" height="18" rx="5" fill="#e3e8ef" stroke="none" stroke-width="1.5"/>
+<text x="692.0" y="670" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2d3d" text-anchor="start">optimizer.step + scheduler.step (once)</text>
+</svg>

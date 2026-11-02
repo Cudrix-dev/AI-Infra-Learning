@@ -10,6 +10,21 @@ Three skills, practised every day:
 
 Two workloads only, so results stay comparable: a **small transformer on synthetic tokens** (DDP, FSDP, ZeRO, TP, PP, Triton) and an **existing PPO/SAC** implementation (parallel rollout, weight sync, CUDA Graphs, RL throughput).
 
+## Progress (updated 2026-11-02)
+
+Day numbers and directories are fixed; when an objective is covered by earlier work, the day is closed with a record rather than renumbered.
+
+| Day | Status | Evidence |
+| --- | --- | --- |
+| 1 | Complete | [notes](day01/notes.md) |
+| 2 | Complete | [notes](day02/notes.md) |
+| 3 | Complete, plus an optimizer CUDA Graph / bucket-view / profiler-interference follow-up | [notes](day03/notes.md), [CUDA_GRAPH.md](day03/CUDA_GRAPH.md) |
+| 4 | Complete: parity, five negative controls, collective counts, timing and slow link measured (run `a100_20261102T042757Z`) | [notes](day04/notes.md) |
+| 5 | Closed without a separate exercise: the objective was met by the Day 03 follow-up; `torch.compile`, dynamic inputs, RNG, fwd/bwd and distributed capture deferred to Days 10, 17, 20 | [closure record](day05/notes.md) |
+| 6 | **Next** | — |
+
+The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
+
 ## Plan
 
 ### Days 1–5: single-GPU baseline to DDP internals
@@ -22,7 +37,7 @@ When parameters, gradients, optimizer state and activations are allocated and fr
 | 2 | Data parallel without DDP | Broadcast params, `all_reduce` grads; ring all-reduce from `send/recv` | N GPUs match 1 GPU on the same global batch |
 | 3 | DDP + autograd gradient hooks | Mini bucketed DDP with `register_post_accumulate_grad_hook` | Per-param vs own buckets vs DDP in the profiler |
 | 4 | Gradient accumulation | Microbatches with and without `no_sync()` | Matches one equivalent large-batch step |
-| 5 | CUDA Graph pitfalls | Eager vs `torch.compile` vs manual graph capture | Parity over several steps; capture vs replay explained |
+| 5 | CUDA Graph pitfalls | Originally eager vs `torch.compile` vs manual capture; covered by Day 3's optimizer-graph follow-up, remaining topics deferred ([record](day05/notes.md)) | Met by Day 3: bitwise eager vs replay parity over 24 steps; capture vs replay explained |
 
 ### Days 6–10: sharding, precision and kernels
 
@@ -34,7 +49,7 @@ Which memory category each technique cuts, what it costs in communication, and w
 | 7 | FSDP2 | `fully_shard` on the whole model vs per block | DDP vs FSDP2 memory and time; `all_gather` / `reduce_scatter` found |
 | 8 | DeepSpeed ZeRO in practice | Same model under ZeRO stages 1, 2, 3 | Memory table per stage; why a higher stage isn't faster |
 | 9 | Mixed precision + activation checkpointing | `autocast`, grad clipping, checkpointing | Drift, memory and time for FP32 vs BF16/FP16 |
-| 10 | Triton fused softmax | Row-wise fused softmax (stretch: RMSNorm) | Correct across row lengths; GB/s vs eager and `torch.compile` |
+| 10 | Triton fused softmax | Row-wise fused softmax (stretch: RMSNorm; optional: `torch.compile` `reduce-overhead`, i.e. CUDA Graphs, where launch time dominates) | Correct across row lengths; GB/s vs eager and `torch.compile` |
 
 ### Days 11–15: model parallelism, MoE and RL sampling
 
@@ -55,10 +70,10 @@ Move weights from a sharded trainer to an inference engine, understand rollout s
 | Day | Topic | Build | Done when |
 | --- | --- | --- | --- |
 | 16 | Training → rollout weight sync | Gather FSDP2 shards, load into a separate inference process | Same greedy output before and after sync; each phase timed |
-| 17 | vLLM as the rollout backend | CPU continuous-batching scheduler; serve a small model in vLLM | Tokens/s vs concurrency; TTFT measured |
+| 17 | vLLM as the rollout backend | CPU continuous-batching scheduler; serve a small model in vLLM; read how decode CUDA Graphs handle changing batch sizes (deferred from Day 5) | Tokens/s vs concurrency; TTFT measured |
 | 18 | verl + LLM RL semantics | Token-level PPO loss with `response_mask` | Padding changes neither loss nor grads; one verl update traced |
 | 19 | Capstone: distributed PPO backend | Single-GPU and DDP backends for my PPO | 1-GPU vs 2-GPU update parity on a frozen batch |
-| 20 | Performance report | Profile, fix one bottleneck, A/B test | Report + 5-minute talk |
+| 20 | Performance report | Profile, fix one bottleneck, A/B test (forward/backward or distributed graph capture only if the bottleneck is launch-bound) | Report + 5-minute talk |
 
 ## How each day works
 
@@ -118,4 +133,4 @@ The rented GPUs are allocated exclusively, but the entire host CPU/resources are
 
 Day 02 acceptance: ring self-test and parity/negative controls passed; 256 MiB builtin all-reduce took about 1.75 ms (153 GB/s), strong scaling reached about 1.40×, and weak throughput scaling about 1.94×. See [Day 02 notes](day02/notes.md) and the [acceptance report](outputs/vast_acceptance_20261027/report.zh-CN.md) for settings and limits. Historical Day 01 timings retain their original machine provenance and are not A100 baselines.
 
-SSH for this rental: `ssh -p 26936 root@23.127.144.217`; project `/workspace/AI-Infra-Learning`. The endpoint can change after recreating the rental. `/workspace` currently uses container storage, not a persistent volume: download needed results before recycle/destroy. An idle running instance is still billed.
+SSH: the endpoint changes with each rental (recent ones: `23.127.144.217:26936`, `ssh6.vast.ai:20163`); take the current host and port from the Vast.ai instance page. Project `/workspace/AI-Infra-Learning`. Rentals also differ in CPU/NUMA placement (the Day 4 pre-test host had the GPUs on different NUMA nodes, the Day 4 run host on the same one), and P2P-disabled sync costs differed by up to ~5× between rentals (~15 to ~75 ms per 105 MiB): record `nvidia-smi topo -m` with every run and compare timings only within a host. `/workspace` currently uses container storage, not a persistent volume: download needed results before recycle/destroy. An idle running instance is still billed.
