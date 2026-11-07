@@ -10,7 +10,7 @@ Three skills, practised every day:
 
 Two workloads only, so results stay comparable: a **small transformer on synthetic tokens** (DDP, FSDP, ZeRO, TP, PP, Triton) and an **existing PPO/SAC** implementation (parallel rollout, weight sync, CUDA Graphs, RL throughput).
 
-## Progress (updated 2026-11-04)
+## Progress (updated 2026-11-08)
 
 Day numbers and directories are fixed; when an objective is covered by earlier work, the day is closed with a record rather than renumbered.
 
@@ -22,6 +22,7 @@ Day numbers and directories are fixed; when an objective is covered by earlier w
 | 4 | Complete: parity, five negative controls, collective counts, timing and slow link measured (run `a100_20261102T042757Z`) | [notes](day04/notes.md) |
 | 5 | Closed without a separate exercise: the objective was met by the Day 03 follow-up; `torch.compile`, dynamic inputs, RNG, fwd/bwd and distributed capture deferred to Days 10, 17, 20 | [closure record](day05/notes.md) |
 | 6 | Complete: own run `a100_20261102T124935Z` (bitwise parity with DDP + AdamW, state per rank logged) and arrival-skew follow-up `a100_sync_20261103T120618Z`; independent reimplementation and unaided final explanation remain open practice items | [guide](day06/GUIDE.md), [measured notes](day06/notes.md), [comm sync](day06/COMM_SYNC.md) |
+| 7 | Personal run `a100_manual_20261104_01` passed: FSDP2 parity, collective counts, memory and timing on NVLink and with P2P disabled. Independent reimplementation and unaided explanation remain practice items. | [guide](day07/GUIDE.md), [measured notes](day07/notes.md) |
 
 The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
 
