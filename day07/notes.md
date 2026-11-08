@@ -106,6 +106,18 @@ What the timeline lines show:
 - **`fsdp_root` holds 2P in forward.** At `fwd_pre model` it jumps by +215.4 MiB, the all-gather buffer plus the unsharded copy. At `fwd_post model` it is 36.6 MiB *lower* than at `fwd_post blocks.5`, while DDP adds 68 MiB there for the logits. 68 − 104.7 = −36.7: the all-gather buffer freed at the root's post-forward.
 - **`bwd_done`:** 228.2 + 52.3 = start + P/2 of sharded gradients.
 
+**Why the all-gather buffer survives copy-out [understanding].** The default FSDP2 path packs the local parameter shards into one contiguous input. The input is a view into this rank's slice of the group's all-gather output buffer, which FSDP2 allocates and passes to NCCL.
+
+```text
+local parameter shard data → copy-in to the rank-local view of the gather buffer
+                          → all-gather into the full buffer
+                          → copy-out to individual complete parameters
+```
+
+With implicit forward prefetch, group B's copy-in can run on a separate stream while group A's all-gather is still running. Because B's copy-in writes into B's gather buffer, FSDP2 keeps a reference to A's buffer so that the allocator gives B different storage. A's copy-out also reads A's buffer. The next group clears the reference after scheduling its own copy-in, at the start of `wait_for_unshard()`, with CUDA event ordering for A's copy-out. The CPU can enqueue that work without blocking until B's copy-in finishes. The dependency is about when the storage can be safely reused.
+
+In `fsdp_root` there is no next group to take that cleanup path. The root's post-forward hook clears the last reference before backward, leaving only the complete weights for backward. This explains the roughly P-sized buffer alongside the complete weights during forward. See the installed source snapshot, `_fsdp_collectives.py` (`all_gather_copy_in`), `_fsdp_param_group.py` (`Note: Overlapping all-gather copy-in and all-gather`, `wait_for_unshard`), and `_fsdp_state.py` (`_post_forward`).
+
 ### 6.3 Between microbatches, K = 4 (timing stage)
 
 | `ddp` | `root_nosync` | `block_sync` | `block_nosync` | `nrf_sync` |
@@ -210,7 +222,7 @@ Medium preset, 25 optimizer steps with 5 excluded, NVLink 3 repeats, slow link 2
 
 ## 9. Completion assessment
 
-The experiment and measured write-up are complete. The personal run passed parity, detected all three controls, and captured collective counts, memory timelines and timings on both links. The guided walkthrough covered the wrapping order, parameter and gradient lifetimes, and the link between the hooks and the trace. The personal Block 3 source notes, independent reimplementation and diffing of the `YOU WRITE` sections, the pre-run prediction sheet, and an unaided final explanation remain open in the Guide.
+The experiment and measured write-up are complete. The personal run passed parity, detected all three controls, and captured collective counts, memory timelines and timings on both links. The guided walkthrough covered the wrapping order, parameter and gradient lifetimes, and the link between the hooks and the trace. Guide §1.8 now records a retrospective derivation and comparison with the run. The pre-run prediction checkbox remains open, along with personal Block 3 source notes, independent reimplementation and diffing of the `YOU WRITE` sections, and an unaided final explanation.
 
 | Gap | Kind | Where it gets resolved |
 | --- | --- | --- |

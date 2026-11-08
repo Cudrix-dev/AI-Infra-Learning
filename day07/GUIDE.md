@@ -200,21 +200,25 @@ Questions before you run:
 - Why might `sum_grads` **pass B** (parameters after one update)? Hint: Adam's first update is lr · m̂ / (√v̂ + ε). What happens to it when g doubles?
 - Why can R never catch a FSDP bug?
 
-### 1.8 Your predictions (fill in before Block 4)
+### 1.8 Predictions and retrospective check
 
-| Quantity | How to estimate | Your prediction |
+Completed after `a100_manual_20261104_01`. The middle column derives expectations from the memory ledger and schedule. The last column records what the run showed. Here P ≈ 104.69 MiB, and memory is per rank.
+
+| Quantity | Derived expectation | Measured check |
 | --- | --- | --- |
-| After wrapping (MiB, rank 0): `ddp`, `fsdp_*` | DDP: params + buckets. FSDP: shards only (the old full tensors must be freed) | |
-| `exp_avg + exp_avg_sq` per rank; allocation across the first step | 2P vs P | |
-| Start of a window (memory timeline, first line): `ddp` − `fsdp_block` | §1.4 | |
-| Between microbatches (K = 4): `block_nosync` − `block_sync` | §1.5 | |
-| Forward peak and backward peak: `ddp`, `root`, `block`, `nrf` | §1.4: persistent + transient + activations | |
-| `fsdp_root`: what happens to memory at `fwd_post model`? | the all-gather buffer | |
-| AllGather / ReduceScatter per optimizer step at K = 4: root sync/nosync, block sync/nosync, nrf sync/nosync | §1.3 × K | |
-| Bitwise groups; which checks each control fails | §1.6, §1.7 | |
-| Time per step, K = 1, m = 8 (NVLink): rank `ddp`, `fsdp_root`, `fsdp_block`, `block_nrf`, `block_pf` | bytes are tiny on NVLink. What else does FSDP add per group? | |
-| The same at m = 32 | what changes when each block's compute is 4× longer? | |
-| Slow link (`NCCL_P2P_DISABLE=1`), K = 1: `fsdp_root` vs `fsdp_block` | which layout can overlap its communication at all? | |
+| After wrapping, rank 0 | DDP has parameters and buckets, 2P ≈ 209.4 MiB. FSDP has shards, P/2 ≈ 52.3 MiB. | DDP 210.4 MiB. Root 53.9 MiB. Block layouts 52.9 MiB. |
+| AdamW state and first-step allocation | The two moment tensors total 2P ≈ 209.4 MiB for DDP and P ≈ 104.7 MiB for FSDP. Other first-step allocations can increase the observed delta. | Moment sizes were 209.38 and 104.69 MiB. First-step deltas were 210.38 for DDP, 110.19 for root and 111.19 MiB for the block layouts. |
+| Window start, `ddp` − `fsdp_block` | 4P − 1.5P = 2.5P ≈ 261.7 MiB. | 484.9 − 228.2 = 256.7 MiB. |
+| Between microbatches, K = 4, `block_nosync` − `block_sync` | Full local gradient vs sharded reduced gradient, P − P/2 ≈ 52.3 MiB. | 339.0 − 280.7 = 58.3 MiB. |
+| Forward and backward peaks, K = 1, m = 8 | Expect DDP highest and standard block lowest. Root keeps the full model and its gather buffer during forward. `nrf` accumulates complete weights block by block. Exact peaks depend on the overlap of these allocations with activations. | Forward / backward in MiB: DDP 1053.1 / 1117.1, root 947.7 / 971.1, block 828.9 / 905.0, `nrf` 906.1 / 970.1. |
+| `fsdp_root` at `fwd_post model` | Root drops the last gather output buffer (≈ P), keeps the complete weights for backward, and adds output-related allocations. | Net drop of 36.6 MiB from `fwd_post blocks.5`, consistent with freeing ≈ 104.7 MiB and adding ≈ 68 MiB. |
+| AllGather / ReduceScatter per step, K = 4 | Root `sync` 4 / 4, `nosync` 4 / 1. Block 52 / 28 and 52 / 7. `nrf` 28 / 28 and 28 / 7. | All six pairs matched. |
+| Bitwise groups and control checks | With matching AdamW, `nosync` should match DDP bitwise. `sync` can differ in the last bits. Expected detectors: `no_init_bcast` → C, `sync_never` → A, `sum_grads` → A. | All five `boundary` pairs matched bitwise. `sync` passed tolerance with a final parameter difference of 3.643e-7. Failures by control: `no_init_bcast` A/B/C/E/S, `sync_never` A/B/D/E/S, `sum_grads` A/E/S. The named detectors all fired. |
+| NVLink, K = 1, m = 8 | Expect DDP fast, root and `nrf` ahead of standard block. Prefetch may hide some gathers, with its step-time effect depending on when they run. | Median ms, fastest first: DDP 36.58, root 38.12, `nrf` 45.23, block 51.17, `pf` 51.33. Block and `pf` repeat ranges overlapped. |
+| NVLink, K = 1, m = 32 | More compute per group gives more room for overlap. Expect the FSDP gap to DDP to shrink. | Median ms: DDP 94.55, root 95.96, `nrf` 96.76, block 97.76, `pf` 98.36. The block gap fell from 14.59 to 3.21 ms. |
+| Slow link, K = 1, m = 8, root vs block | Block can hide more communication. Extra backward gathers and per-group overhead still affect total step time. | Exposed profiler time: block 27.50 ms vs root 58.43 ms. Unprofiled step time: block 100.73 ms vs root 88.41 ms. |
+
+See [measured notes](notes.md) for the memory timeline, the buffer lifetime, and the timing caveats.
 
 ### 1.9 New rules (on top of Days 02–06)
 
