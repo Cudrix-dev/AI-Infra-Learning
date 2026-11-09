@@ -177,6 +177,9 @@ def print_sequence(res: dict, step: int = 0, max_rows: int = 200) -> None:
         print(f"{i:3d} {c['kind']:13s} {c['label'][:44]:44s} {str(c['phase']).replace('backward (autograd thread)', 'bwd thread')[:12]:12s} "
               f"{str(c['stream']):>6s} {c['start_ms']:9.3f} {c['dur_ms']:7.3f} "
               f"{(f'{mr:8.3f}' if mr is not None else '       -')} {100 * c['overlap_frac']:6.0f}%")
+    if len(s["sequence"]) > max_rows:
+        print(f"... {len(s['sequence']) - max_rows} more collectives not shown (max_rows={max_rows}); "
+              f"the header count and the per-step tables include them")
 
 
 def main() -> int:

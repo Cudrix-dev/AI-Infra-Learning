@@ -23,13 +23,13 @@ Day numbers and directories are fixed; when an objective is covered by earlier w
 | 5 | Closed without a separate exercise: the objective was met by the Day 03 follow-up; `torch.compile`, dynamic inputs, RNG, fwd/bwd and distributed capture deferred to Days 10, 17, 20 | [closure record](day05/notes.md) |
 | 6 | Complete: own run `a100_20261102T124935Z` (bitwise parity with DDP + AdamW, state per rank logged) and arrival-skew follow-up `a100_sync_20261103T120618Z`; independent reimplementation and unaided final explanation remain open practice items | [guide](day06/GUIDE.md), [measured notes](day06/notes.md), [comm sync](day06/COMM_SYNC.md) |
 | 7 | Personal run `a100_manual_20261104_01` passed: FSDP2 parity, collective counts, memory and timing on NVLink and with P2P disabled. Independent reimplementation and unaided explanation remain practice items. | [guide](day07/GUIDE.md), [measured notes](day07/notes.md) |
-| 8 | Scope reduced on 2026-11-08 (Option A, see below). The day closes on three observations from the personal run, which is under way; the assistant's pre-test `pretest2` passed every stage with DeepSpeed 0.19.9. | [guide](day08/GUIDE.md), [notes template](day08/notes.md) |
+| 8 | Complete. Personal core run `a100_core_20261108T090011Z` passed parity, count and memory. | [guide](day08/GUIDE.md), [measured notes](day08/notes.md) |
 
 The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
 
 **Plan change 2026-11-08.**
 
-- **Day 8 (Option A).** The full ZeRO 0–3 analysis overlapped Days 06 (hand-written ZeRO-1) and 07 (FSDP2). Day 8 now requires only three observations from the run already under way: the bucket collective and reduction frequency, the ZeRO-3 vs ZeRO-2 start-of-step memory, and one accumulation pitfall shown by a negative control. Predictions, the reimplementation, the source walkthrough, and the timing and slow-link analysis are optional; the runner and outputs are unchanged. Remaining Day 8 work: about 1 h after the run, down from about 3 h.
+- **Day 8 (Option A).** The full ZeRO 0–3 analysis overlapped Days 06 (hand-written ZeRO-1) and 07 (FSDP2). Day 8 now requires only three observations from the completed core run: the bucket collective and reduction frequency, the ZeRO-3 vs ZeRO-2 start-of-step memory, and one accumulation pitfall shown by a negative control. Predictions, the reimplementation, the source walkthrough, and the timing and slow-link analysis are optional; the runner supports `--core` to execute the required stages alone.
 - **Day 13 (Megatron Core).** A short four-GPU Megatron Core run (`DP=1, TP=2, PP=2`) replaces the simulation-only part of Day 13 (full brief below the Days 11–15 table). It displaces:
   - the four-logical-rank CPU simulation of `DP=2 × TP=2`, which becomes the fallback, re-targeted to `TP=2 × PP=2`;
   - the own-code `DP=2` or `TP=2` practice on the dual A100;

@@ -5,6 +5,10 @@
 torch>=2.13
 numpy
 
+# Day 08 only (Linux GPU host). Pure-Python install; Day 08 passes torch's AdamW, so no DeepSpeed op is ever built.
+# Install with: DS_BUILD_OPS=0 python -m pip install deepspeed==0.19.9
+deepspeed==0.19.9; platform_system == "Linux"
+
 # Optional. Day 02's launcher uses it to find child processes on platforms without /proc (Windows).
 psutil
 
