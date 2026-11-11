@@ -10,7 +10,7 @@ Three skills, practised every day:
 
 Two workloads only, so results stay comparable: a **small transformer on synthetic tokens** (DDP, FSDP, ZeRO, TP, PP, Triton) and an **existing PPO/SAC** implementation (parallel rollout, weight sync, CUDA Graphs, RL throughput).
 
-## Progress (updated 2026-11-08)
+## Progress (updated 2026-11-11)
 
 Day numbers and directories are fixed; when an objective is covered by earlier work, the day is closed with a record rather than renumbered.
 
@@ -24,6 +24,7 @@ Day numbers and directories are fixed; when an objective is covered by earlier w
 | 6 | Complete: own run `a100_20261102T124935Z` (bitwise parity with DDP + AdamW, state per rank logged) and arrival-skew follow-up `a100_sync_20261103T120618Z`; independent reimplementation and unaided final explanation remain open practice items | [guide](day06/GUIDE.md), [measured notes](day06/notes.md), [comm sync](day06/COMM_SYNC.md) |
 | 7 | Personal run `a100_manual_20261104_01` passed: FSDP2 parity, collective counts, memory and timing on NVLink and with P2P disabled. Independent reimplementation and unaided explanation remain practice items. | [guide](day07/GUIDE.md), [measured notes](day07/notes.md) |
 | 8 | Complete. Personal core run `a100_core_20261108T090011Z` passed parity, count and memory. | [guide](day08/GUIDE.md), [measured notes](day08/notes.md) |
+| 9 | Complete. Personal full run `manual_full_20261109T065636Z` passed every check: dtype probe, the fp16-order control detected, checkpointing bitwise equal, the matrix, and the optional DDP stage. Notes are filled with measured results and a post-run debrief. Writing `my_amp.py` (`window_step`, `model_forward`) and passing both `--impl mine` checks is deferred as an open practice item. | [guide](day09/GUIDE.md), [measured notes](day09/notes.md) |
 
 The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
 
