@@ -1,6 +1,6 @@
 # Day 10: row-wise fused softmax in Triton
 
-The learning walkthrough, handwritten kernel and reference GPU experiment are complete. The downloaded run `ref_20261111T091125Z` used `--impl ref --full`. The handwritten `my_softmax.py` was reviewed statically. Its `--impl mine` GPU check and core benchmark are pending. The GPU instance has been destroyed. Earlier assistant runs are recorded in [Guide Appendix A](GUIDE.md#appendix-a-pre-test-results-pretest2-assistant-run-2026-11-11-pre-test).
+The learning walkthrough, handwritten kernel and reference GPU experiment are complete. The downloaded run `ref_20261111T091125Z` used `--impl ref --full`. The handwritten `my_softmax.py` passed `check_softmax.py --impl mine --quick` (159 cases, 0 failed) on an A100-SXM4-80GB on 2026-11-13. Its full check and core benchmark are pending. The GPU instance has been destroyed. Earlier assistant runs are recorded in [Guide Appendix A](GUIDE.md#appendix-a-pre-test-results-pretest2-assistant-run-2026-11-11-pre-test).
 
 **[measured]** denotes values recorded in this run, including compiler-reported metadata and ratios of measured times. **[derived]** denotes calculated values such as bytes and effective GB/s. **[understanding]** denotes reasoning from the implementation. **[not isolated]** marks a cause whose contribution the experiment did not separate.
 
@@ -46,6 +46,16 @@ The predictions below reconstruct the reasoning from the guided review after the
 **[understanding]** The kernel supports CUDA FP32, FP16 and BF16 inputs, with a contiguous last dimension and up to 65,536 columns. A 2-D input can have a padded row stride. Higher-dimensional inputs must be viewable as rows without copying. A fully masked row of real `-inf` values gives NaN, matching the tested `torch.softmax` behavior. [Input contract](../experiments/day10_triton_softmax/README.md#contract-what-the-kernel-supports)
 
 In the handwritten kernel I initially spelled `tl.arange` as `tl.arrange`. Static review caught it and I corrected it. I use the input and output strides separately, and apply the same column mask to both accesses. [Handwritten kernel](../experiments/day10_triton_softmax/my_softmax.py)
+
+**[measured] Handwritten kernel, quick check.** On 2026-11-13, on a different host (A100-SXM4-80GB, torch 2.14.1+cu130, Triton 3.8.0), `check_softmax.py --impl mine --quick` passed 159 cases with 0 failures. That covers 53 per dtype, plus all 12 stability cases, the sentinel in 39/39 row-strided cases, and the contract check. The output was copied from the terminal; no log archive was downloaded.
+
+| dtype | Cases | Failed | Max abs. error vs torch | Mine vs fp64 | Torch vs fp64 | Max abs. row-sum error |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| fp32 | 53 | 0 | 5.960e-8 | 9.172e-8 | 9.172e-8 | 1.578e-7 |
+| fp16 | 53 | 0 | 1.221e-4 | 2.349e-4 | 2.349e-4 | 4.044e-4 |
+| bf16 | 53 | 0 | 1.526e-5 | 1.950e-3 | 1.950e-3 | 2.686e-3 |
+
+The kernel's error against fp64 equals `torch.softmax`'s in every dtype, so computing in FP32 and casting once at the store matches PyTorch's rounding **[derived]**. The quick suite skips some row lengths and layouts, so the full 381-case check is still open.
 
 ## 4. Timing and bandwidth
 
@@ -148,5 +158,6 @@ Times are `loop_us`, except the last column.
 - [x] Write the Softmax kernel and correct the `tl.arange` spelling after static review.
 - [x] Run, download and verify `ref --full`. Document correctness, performance and interpretation.
 - [x] Record the Block 1 predictions as a retrospective.
-- [ ] Run the handwritten kernel's GPU correctness check and core benchmark with `--impl mine`.
+- [x] Run the handwritten kernel's quick GPU correctness check: `--impl mine --quick` passed 159 cases on 2026-11-13.
+- [ ] Run the full `--impl mine` correctness check and core benchmark.
 - [ ] Optional. Implement and test the handwritten RMSNorm kernel.

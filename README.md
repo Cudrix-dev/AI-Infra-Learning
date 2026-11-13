@@ -10,7 +10,7 @@ Three skills, practised every day:
 
 Two workloads only, so results stay comparable: a **small transformer on synthetic tokens** (DDP, FSDP, ZeRO, TP, PP, Triton) and an **existing PPO/SAC** implementation (parallel rollout, weight sync, CUDA Graphs, RL throughput).
 
-## Progress (updated 2026-11-11)
+## Progress (updated 2026-11-13)
 
 Day numbers and directories are fixed; when an objective is covered by earlier work, the day is closed with a record rather than renumbered.
 
@@ -25,7 +25,7 @@ Day numbers and directories are fixed; when an objective is covered by earlier w
 | 7 | Personal run `a100_manual_20261104_01` passed: FSDP2 parity, collective counts, memory and timing on NVLink and with P2P disabled. Independent reimplementation and unaided explanation remain practice items. | [guide](day07/GUIDE.md), [measured notes](day07/notes.md) |
 | 8 | Complete. Personal core run `a100_core_20261108T090011Z` passed parity, count and memory. | [guide](day08/GUIDE.md), [measured notes](day08/notes.md) |
 | 9 | Complete. Personal full run `manual_full_20261109T065636Z` passed every check: dtype probe, the fp16-order control detected, checkpointing bitwise equal, the matrix, and the optional DDP stage. Notes are filled with measured results and a post-run debrief. Writing `my_amp.py` (`window_step`, `model_forward`) and passing both `--impl mine` checks is deferred as an open practice item. | [guide](day09/GUIDE.md), [measured notes](day09/notes.md) |
-| 10 | Complete. Personal full reference run `ref_20261111T091125Z` passed every check: 381 correctness cases, all three negative controls detected, the RMSNorm reference, and the rows, count, padding, warp and launch benchmarks. Notes are filled with measured results, labelled derivations and open measurements. Running my kernel (`my_softmax.py`, written but not yet run on a GPU) through `--impl mine` and the RMSNorm stretch are deferred as open practice items. | [guide](day10/GUIDE.md), [measured notes](day10/notes.md) |
+| 10 | Complete. Personal full reference run `ref_20261111T091125Z` passed every check: 381 correctness cases, all three negative controls detected, the RMSNorm reference, and the rows, count, padding, warp and launch benchmarks. Notes are filled with measured results, labelled derivations and open measurements. My kernel (`my_softmax.py`) passed the quick `--impl mine` check on 2026-11-13 (159 cases, 0 failed, A100 80GB). Its full check, its benchmark and the RMSNorm stretch are deferred as open practice items. | [guide](day10/GUIDE.md), [measured notes](day10/notes.md) |
 
 The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
 

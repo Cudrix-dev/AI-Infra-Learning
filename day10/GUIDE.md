@@ -1,6 +1,6 @@
 # Day 10: a row-wise fused softmax in Triton (single-A100 guide)
 
-> **Run status.** The full reference run `ref_20261111T091125Z` passed on 2026-11-11. The archive and all 51 manifest entries were verified locally. The guided walkthrough and handwritten Softmax are complete. GPU correctness and the core benchmark for the handwritten `--impl mine` remain pending. [Measured results](notes.md#2-run-record) · [Earlier assistant pre-test](#appendix-a-pre-test-results-pretest2-assistant-run-2026-11-11-pre-test)
+> **Run status.** The full reference run `ref_20261111T091125Z` passed on 2026-11-11. The archive and all 51 manifest entries were verified locally. The guided walkthrough and handwritten Softmax are complete. The handwritten kernel passed `check_softmax.py --impl mine --quick` on 2026-11-13 (159 cases, 0 failed, A100-SXM4-80GB). Its full check and core benchmark remain pending. [Measured results](notes.md#2-run-record) · [Earlier assistant pre-test](#appendix-a-pre-test-results-pretest2-assistant-run-2026-11-11-pre-test)
 
 ## Required to close Day 10 (about 4 h including the run)
 
