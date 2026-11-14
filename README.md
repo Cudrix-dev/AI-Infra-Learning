@@ -26,6 +26,7 @@ Day numbers and directories are fixed; when an objective is covered by earlier w
 | 8 | Complete. Personal core run `a100_core_20261108T090011Z` passed parity, count and memory. | [guide](day08/GUIDE.md), [measured notes](day08/notes.md) |
 | 9 | Complete. Personal full run `manual_full_20261109T065636Z` passed every check: dtype probe, the fp16-order control detected, checkpointing bitwise equal, the matrix, and the optional DDP stage. Notes are filled with measured results and a post-run debrief. Writing `my_amp.py` (`window_step`, `model_forward`) and passing both `--impl mine` checks is deferred as an open practice item. | [guide](day09/GUIDE.md), [measured notes](day09/notes.md) |
 | 10 | Complete. Personal full reference run `ref_20261111T091125Z` passed every check: 381 correctness cases, all three negative controls detected, the RMSNorm reference, and the rows, count, padding, warp and launch benchmarks. Notes are filled with measured results, labelled derivations and open measurements. My kernel (`my_softmax.py`) passed the quick `--impl mine` check on 2026-11-13 (159 cases, 0 failed, A100 80GB). Its full check, its benchmark and the RMSNorm stretch are deferred as open practice items. | [guide](day10/GUIDE.md), [measured notes](day10/notes.md) |
+| 11 | In progress. Personal reference run `manual_ref_20261113T062618Z` passed every check: the tiny example, unit tests, FP32 ×1, FP32 ×2 and FP64 parity with the single-GPU MLP, and all eight negative-control cases detected as predicted. Notes are filled with measured results and explanations. My `my_tp.py` is written and reviewed, but its `--impl mine` GPU run is pending. The Megatron Core `core_v0.19.2` layers passed only in the assistant's pre-test `pretest1`. | [guide](day11/GUIDE.md), [measured notes](day11/notes.md) |
 
 The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
 
@@ -98,7 +99,7 @@ No Day 13 guide or code exists yet. A first draft was removed on 2026-11-08, bef
 
 **Constraints for the guide and code:**
 
-- Pin one Megatron-LM release that works with the image's torch 2.14.1+cu130 / NCCL 2.30.7 without reinstalling torch, and **verify it before relying on it**. The removed draft named `core_v0.13.0` (used from a source clone via `PYTHONPATH`), but it was never tested.
+- Pin one Megatron-LM release that works with the image's torch 2.14.1+cu130 / NCCL 2.30.7 without reinstalling torch, and **verify it before relying on it**. The removed draft named `core_v0.13.0` (used from a source clone via `PYTHONPATH`), but it was never tested. Day 11's pre-test (2026-11-13) used `core_v0.19.2` (commit `4b4acac9`) from a source clone on `PYTHONPATH`: it imported with torch 2.14.1+cu130 without Transformer Engine or apex, and its `ColumnParallelLinear` / `RowParallelLinear` passed the Day 11 parity check at TP = 2. That makes it the tested candidate; a GPT training run at this pin is still untested.
 - Pre-test on the dual A100 first (`TP=2, PP=1` and `TP=1, PP=2`), before the four-GPU rental is paid for. Those runs double as the fallback's GPU part.
 - Include a short topology check for the rental: the TP pairs must sit on the fastest links (all-reduce per layer), and PP pairs can take slower ones. Use the same template image as Days 02–08. Budget about 2 h of rental.
 - Keep things simple and readable:
