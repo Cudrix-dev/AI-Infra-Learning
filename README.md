@@ -10,7 +10,7 @@ Three skills, practised every day:
 
 Two workloads only, so results stay comparable: a **small transformer on synthetic tokens** (DDP, FSDP, ZeRO, TP, PP, Triton) and an **existing PPO/SAC** implementation (parallel rollout, weight sync, CUDA Graphs, RL throughput).
 
-## Progress (updated 2026-11-13)
+## Progress (updated 2026-11-15)
 
 Day numbers and directories are fixed; when an objective is covered by earlier work, the day is closed with a record rather than renumbered.
 
@@ -27,6 +27,7 @@ Day numbers and directories are fixed; when an objective is covered by earlier w
 | 9 | Complete. Personal full run `manual_full_20261109T065636Z` passed every check: dtype probe, the fp16-order control detected, checkpointing bitwise equal, the matrix, and the optional DDP stage. Notes are filled with measured results and a post-run debrief. Writing `my_amp.py` (`window_step`, `model_forward`) and passing both `--impl mine` checks is deferred as an open practice item. | [guide](day09/GUIDE.md), [measured notes](day09/notes.md) |
 | 10 | Complete. Personal full reference run `ref_20261111T091125Z` passed every check: 381 correctness cases, all three negative controls detected, the RMSNorm reference, and the rows, count, padding, warp and launch benchmarks. Notes are filled with measured results, labelled derivations and open measurements. My kernel (`my_softmax.py`) passed the quick `--impl mine` check on 2026-11-13 (159 cases, 0 failed, A100 80GB). Its full check, its benchmark and the RMSNorm stretch are deferred as open practice items. | [guide](day10/GUIDE.md), [measured notes](day10/notes.md) |
 | 11 | Complete. Personal reference run `manual_ref_20261113T062618Z` passed every check: the tiny example, unit tests, FP32 ×1, FP32 ×2 and FP64 parity with the single-GPU MLP, and all eight negative-control cases detected as predicted. My `my_tp.py` passed the tiny example, unit tests and all three parity cases in `manual_mine_20261115T114906Z` (`--impl mine`), with errors identical to the reference's. Notes are filled with measured results and explanations. The Megatron Core `core_v0.19.2` layers passed only in the assistant's pre-test `pretest1`; the optional `--megatron` stage is deferred. | [guide](day11/GUIDE.md), [measured notes](day11/notes.md) |
+| 12 | Complete. Personal reference run `manual_ref_20261115T113822Z` passed every check: the simulator matched the hand-worked P = 2, M = 4 example, both schedules at M = 1, 2, 4, 8 matched one-GPU accumulation bitwise (`y` and all gradients), each rank's F/B order and peak in-flight count equalled the simulator's, and all three negative controls were detected. My `my_pp.py` passed the boundary check and all eight GPipe/1F1B cases in `manual_mine_20261115T114621Z` (`--impl mine`), with results identical to the reference's. Notes are filled with measured results, explanations and a Day 13 prediction. The optional slow-stage extension (GUIDE §4) is not done. | [guide](day12/GUIDE.md), [measured notes](day12/notes.md) |
 
 The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
 
