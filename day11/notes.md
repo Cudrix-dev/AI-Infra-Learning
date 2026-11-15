@@ -1,6 +1,6 @@
 # Day 11: tensor-parallel MLP (column → GELU → row) with explicit autograd communication
 
-The manual reference run `manual_ref_20261113T062618Z` passed on two A100s. My `my_tp.py` is complete: all six functions are written, and the assistant reviewed them against the reference on 2026-11-14. It has not been executed yet. The `--impl mine` GPU run is pending. The earlier runs are documented in [GUIDE Appendix A](GUIDE.md#appendix-a-pre-test-results-pretest1-assistant-run-2026-11-13-pre-test).
+The manual reference run `manual_ref_20261113T062618Z` passed on two A100s. My own `my_tp.py` passed the same checks on 2026-11-15 in run `manual_mine_20261115T114906Z` (`--impl mine`): the tiny example, all unit tests and all three parity cases. The earlier runs are documented in [GUIDE Appendix A](GUIDE.md#appendix-a-pre-test-results-pretest1-assistant-run-2026-11-13-pre-test).
 
 Labels, as on Day 10: **[measured]** values from my run, **[pre-test]** values from the assistant's run, **[derived]** arithmetic, **[understanding]** my reasoning, **[not isolated]** a cause the run does not separate.
 
@@ -23,18 +23,21 @@ The reasoning column reconstructs the predictions after the guided walkthrough. 
 
 ## 2. Run record
 
-| Item | Manual reference run [measured] |
-| --- | --- |
-| Run ID | `manual_ref_20261113T062618Z`, `--impl ref`, TP = 2 |
-| Time (UTC) | 2026-11-13 06:27:07–06:27:49 (42 s for the runner [derived]) |
-| Host | Vast.ai container 60454650, hostname `7e92845066ae` |
-| GPUs and topology | 2 × A100-SXM4-80GB, NV12, both GPUs on NUMA node 0, bidirectional P2P |
-| Driver and software | Driver 580.178.04, Python 3.12.15, torch 2.14.1+cu130, CUDA build 13.0, NCCL 2.30.7 |
-| Megatron stage | Skipped (`megatron=none` in `commands.txt`) |
-| Verdict | Exit 0. Tiny example, all four unit checks, three parity cases and all eight negative-control cases passed their expected checks. |
-| Archive | SHA-256 `f85617a01ae5909f5bf10d11ad385a67c542f7f0cc68a737e4e91d618f839668`. All 37 manifest entries verified locally. |
+| Item | Manual reference run [measured] | My implementation run [measured] |
+| --- | --- | --- |
+| Run ID | `manual_ref_20261113T062618Z`, `--impl ref`, TP = 2 | `manual_mine_20261115T114906Z`, `--impl mine`, TP = 2 |
+| Time (UTC) | 2026-11-13 06:27:07–06:27:49 (42 s for the runner [derived]) | 2026-11-15 11:49:06–11:50:00 (54 s for the runner [derived]) |
+| Host | Vast.ai container 60454650, hostname `7e92845066ae` | Vast.ai container 60779373, hostname `db6248f280e6` |
+| GPUs and topology | 2 × A100-SXM4-80GB, NV12, both GPUs on NUMA node 0, bidirectional P2P | Same: 2 × A100-SXM4-80GB, NV12, NUMA node 0, bidirectional P2P |
+| Driver and software | Driver 580.178.04, Python 3.12.15, torch 2.14.1+cu130, CUDA build 13.0, NCCL 2.30.7 | Same versions |
+| Megatron stage | Skipped (`megatron=none` in `commands.txt`) | Skipped |
+| Verdict | Exit 0. Tiny example, all four unit checks, three parity cases and all eight negative-control cases passed their expected checks. | Exit 0. Tiny example, all four unit checks (8/8 per-rank lines `ok`) and three parity cases passed. The runner does not run the negative controls with `--impl mine`. |
+| Code that ran | `tp_ref.py` | The run's `project_snapshot/.../my_tp.py` is identical to the committed `my_tp.py` |
+| Archive | SHA-256 `f85617a01ae5909f5bf10d11ad385a67c542f7f0cc68a737e4e91d618f839668`. All 37 manifest entries verified locally. | SHA-256 `5ecfe102103fecc27b459c296e95311aa7a5817365e56841a7f4648ff406b3d6`. All 36 manifest entries verified locally. |
 
-[Download folder and result JSONs][run] · [Archive][archive] · [Environment][env] · [Commands][commands] · [Verification log][verify]
+Reference run: [Download folder and result JSONs][run] · [Archive][archive] · [Environment][env] · [Commands][commands] · [Verification log][verify]
+
+My implementation run: [Download folder][mine-run] · [Unit tests][mine-unit] · [FP32 ×1][mine-fp32b1] · [FP32 ×2][mine-fp32b2] · [FP64 ×1][mine-fp64b1] · [Verification log][mine-verify]
 
 ## 3. Ownership drawing (tiny example, my own)
 
@@ -86,6 +89,10 @@ Pass criterion is `max|tp − 1gpu| / max|1gpu| ≤ 1e-5` in FP32 or `≤ 1e-12`
 | FP64 ×1 | `dx` (worst `rel`) | 1.25e-19 | 3.17e-15 | no | 1.0000 |
 
 The single-GPU baseline repeated bitwise and the rank-0 dense replay matched it bitwise in all three cases. The replicated `y`, `dx` and `db2` were bitwise equal across TP ranks in every case. [FP32 ×1][fp32b1] · [FP32 ×2][fp32b2] · [FP64 ×1][fp64b1]
+
+**My implementation [measured].** `--impl mine` passed all three cases with **exactly the same** max-abs error, `rel` and `ratio` as the reference, to every printed digit. Examples: FP32 ×1 `y` 2.742e-6 / 8.06e-7, FP32 ×2 `dx` 2.228e-11 / 9.38e-7, FP64 ×1 `dx` 1.254e-19 / 3.17e-15. The replicated tensors were again bitwise equal across ranks, and the baselines repeated bitwise. [FP32 ×1][mine-fp32b1] · [FP32 ×2][mine-fp32b2] · [FP64 ×1][mine-fp64b1]
+
+**[understanding]** Both runs use the same seed and issue the same operations in the same order: the same shard slices, `F.linear` calls and SUM all-reduces. Identical error statistics therefore point to `my_tp.py` producing the same tensors as `tp_ref.py` bit for bit. The run compared each implementation with the single-GPU baseline, not with the other implementation, so this is inferred, not checked directly **[not isolated]**.
 
 **[understanding]** A dense matmul and a sharded matmul can group their sums differently. Floating-point addition can round differently with each grouping. The much smaller FP64 error is consistent with rounding. **[derived]** The unit roundoff is 2⁻²⁴ ≈ 6.0e-8 in FP32 and 2⁻⁵³ ≈ 1.1e-16 in FP64, a ratio of 2⁻²⁹ ≈ 1.9e-9. Scaling the FP32 ×1 errors (6.6e-7 for `dx`, 8.1e-7 for `y`) by that ratio predicts about 1.3e-15 to 1.5e-15. The measured FP64 values were 3.17e-15 for `dx` and 1.76e-15 for `y`, the same order. If the TP code dropped or added a term, the FP64 error would stay near the size of that term instead of falling by ~10⁹.
 
@@ -180,14 +187,14 @@ For a LayerNorm with trainable scale and bias, each rank also computes parameter
 - Bitwise differences in the local weight gradients: likely cuBLAS kernel choice for different matmul shapes **[not isolated]**.
 - No timing, no overlap measurement, no BF16/FP16, no TP > 2.
 - The Megatron layer results are from the assistant pre-test. The manual archive covers the reference implementation at TP = 2.
-- My own `my_tp.py` has been reviewed but not executed. No `--impl mine` numbers appear in this file yet.
+- The four negative controls were run against `tp_ref.py` only. The optional Stage 4 exercise, removing the reduction from my own `CopyToTP`, was not run.
 
 ## Completion
 
 - [x] Record reasoning and observations for P1–P10 after the walkthrough (§1).
 - [x] Record the two-rank ownership drawing for the tiny example (§3).
 - [x] `my_tp.py` written (all six functions; reviewed against the reference, 2026-11-14).
-- [ ] `--impl mine` unit and parity tests pass on the GPUs (FP32 ×1, ×2, FP64). Pending the next rental: `bash experiments/day11_tensor_parallel/run_server_once.sh "mine_<UTC>" --impl mine` (~40 s).
+- [x] `--impl mine` unit and parity tests pass on the GPUs (FP32 ×1, ×2, FP64): `manual_mine_20261115T114906Z`.
 - [x] Reference run with controls downloaded and verified, with results recorded in §2 and §4–§6.
 - [x] Review Block 3 Stops 1–5 and record the mapping in §7.
 - [x] Record the optional TP + SP walkthrough with LayerNorm (§8.1).
@@ -202,3 +209,9 @@ For a LayerNorm with trainable scale and bias, each rank also computes parameter
 [fp32b1]: ../outputs/day11_downloads/manual_ref_20261113T062618Z/session_manual_ref_20261113T062618Z/parity_float32_b1.log
 [fp32b2]: ../outputs/day11_downloads/manual_ref_20261113T062618Z/session_manual_ref_20261113T062618Z/parity_float32_b2.log
 [fp64b1]: ../outputs/day11_downloads/manual_ref_20261113T062618Z/session_manual_ref_20261113T062618Z/parity_float64_b1.log
+[mine-run]: ../outputs/day11_downloads/manual_mine_20261115T114906Z/
+[mine-unit]: ../outputs/day11_downloads/manual_mine_20261115T114906Z/session_manual_mine_20261115T114906Z/unit.log
+[mine-fp32b1]: ../outputs/day11_downloads/manual_mine_20261115T114906Z/session_manual_mine_20261115T114906Z/parity_float32_b1.log
+[mine-fp32b2]: ../outputs/day11_downloads/manual_mine_20261115T114906Z/session_manual_mine_20261115T114906Z/parity_float32_b2.log
+[mine-fp64b1]: ../outputs/day11_downloads/manual_mine_20261115T114906Z/session_manual_mine_20261115T114906Z/parity_float64_b1.log
+[mine-verify]: ../outputs/day11_downloads/manual_mine_20261115T114906Z/session_manual_mine_20261115T114906Z/verify_core.log

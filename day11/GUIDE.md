@@ -1,6 +1,6 @@
 # Day 11: a tensor-parallel MLP with explicit autograd communication (dual-A100 guide)
 
-> **Run status.** The manual reference run `manual_ref_20261113T062618Z` passed all three parity cases and all eight negative-control cases. The downloaded archive and its 37 manifest entries were verified. `my_tp.py` is written (all six functions, reviewed 2026-11-14) but not yet executed. The personal `--impl mine` GPU run is pending. [Manual results](#appendix-b-manual-reference-run) · [Pre-test results](#appendix-a-pre-test-results-pretest1-assistant-run-2026-11-13-pre-test) · [Experiment notes](notes.md)
+> **Run status.** The manual reference run `manual_ref_20261113T062618Z` passed all three parity cases and all eight negative-control cases. The downloaded archive and its 37 manifest entries were verified. My own `my_tp.py` passed the tiny example, the unit tests and all three parity cases in `manual_mine_20261115T114906Z` (`--impl mine`, 2026-11-15). Its errors are identical to the reference's, and its archive and 36 manifest entries were verified. **Day 11 complete.** [Manual results](#appendix-b-manual-reference-run) · [Pre-test results](#appendix-a-pre-test-results-pretest1-assistant-run-2026-11-13-pre-test) · [Experiment notes](notes.md)
 
 ## Required to close Day 11 (about 4 h including the run)
 
@@ -15,7 +15,7 @@
 
 - [x] Record reasoning and observations for P1–P10 in notes §1 after the walkthrough.
 - [x] Record the two-rank ownership drawing for the tiny example in notes §3.
-- [ ] Write `my_tp.py` (Steps 1–3) and pass `--impl mine` unit and parity tests.
+- [x] Write `my_tp.py` (Steps 1–3) and pass `--impl mine` unit and parity tests (`manual_mine_20261115T114906Z`).
 - [x] Run the reference with controls, download and verify the archive, and record the measured results in notes §2 and §4–§6.
 - [x] Review Block 3 Stops 1–5 and record the mapping in notes §7.
 
