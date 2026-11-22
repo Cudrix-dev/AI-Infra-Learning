@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1484 790" width="1484" height="790"><defs><marker id="ah0b7f86" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7f86"/></marker><marker id="ah1f2937" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/></marker><marker id="ah2f9e5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="ah3b6fd4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd4"/></marker><marker id="ah6b7280" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker><marker id="ah7048c8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048c8"/></marker><marker id="ah94a3b8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker><marker id="ahb91c1c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/></marker><marker id="ahc0267a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c0267a"/></marker><marker id="ahcbd5e1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/></marker><marker id="ahe3891b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3891b"/></marker></defs>
+<rect width="1484" height="790" rx="16" fill="#ffffff"/>
+<text x="24.0" y="40.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="22" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Forward of one MLP block at TP = 2: SP off vs SP on</text>
+<text x="24.0" y="64.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">s = 256 tokens, b = 2 sequences, h = 512, ffn = 2048. Matmuls are written on the flattened (s·b) × h = 512 × 512 activation. Both rank lanes are shown; a tall bar is a collective between them.</text>
+<rect x="24.0" y="82.0" width="18.0" height="18.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="49.0" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">replicated (full, same on both ranks)</text>
+<rect x="348.8" y="82.0" width="18.0" height="18.0" rx="4" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="373.8" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">sequence-sharded (own tokens)</text>
+<rect x="614.4" y="82.0" width="18.0" height="18.0" rx="4" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="639.4" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">hidden-sharded (TP region)</text>
+<rect x="857.8" y="82.0" width="18.0" height="18.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="882.8" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">partial sum (needs a reduction)</text>
+<path d="M104,142 L104,134 L404,134 L404,142" fill="none" stroke="#475569" stroke-width="1.6"/>
+<text x="254.0" y="128.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#475569" text-anchor="middle" font-weight="700" xml:space="preserve">outside the TP region (residual stream)</text>
+<path d="M580,142 L580,134 L1150,134 L1150,142" fill="none" stroke="#2f9e5b" stroke-width="1.6"/>
+<text x="865.0" y="128.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#2f9e5b" text-anchor="middle" font-weight="700" xml:space="preserve">TP region: hidden dim split, exactly Day 11  (identical with SP on or off)</text>
+<path d="M1330,142 L1330,134 L1460,134 L1460,142" fill="none" stroke="#475569" stroke-width="1.6"/>
+<text x="1395.0" y="128.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#475569" text-anchor="middle" font-weight="700" xml:space="preserve">outside again</text>
+<text x="492.0" y="128.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#475569" text-anchor="middle" font-weight="700" xml:space="preserve">ENTER</text>
+<text x="1240.0" y="128.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#475569" text-anchor="middle" font-weight="700" xml:space="preserve">LEAVE</text>
+<text x="24.0" y="176.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="16" fill="#3b6fd4" text-anchor="start" font-weight="700" xml:space="preserve">SP off  (main run)</text>
+<text x="24.0" y="239.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">rank 0</text>
+<text x="24.0" y="333.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">rank 1</text>
+<rect x="104.0" y="192.0" width="150.0" height="84.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="179.0" y="222.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">x</text>
+<text x="179.0" y="238.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 512]</text>
+<text x="179.0" y="254.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">all 256 tokens</text>
+<rect x="276.0" y="192.0" width="128.0" height="84.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="340.0" y="222.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">LayerNorm</text>
+<text x="340.0" y="238.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 512]</text>
+<text x="340.0" y="254.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">same on both</text>
+<rect x="580.0" y="192.0" width="200.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="680.0" y="213.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc1 (column-parallel)</text>
+<text x="680.0" y="230.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">h<tspan baseline-shift="sub" font-size="75%">r</tspan> = x·A1<tspan baseline-shift="sub" font-size="75%">r</tspan> + b1<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="680.0" y="247.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×512)·(512×1024)</text>
+<text x="680.0" y="264.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 1024]</text>
+<rect x="804.0" y="192.0" width="126.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="867.0" y="222.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">GELU</text>
+<text x="867.0" y="238.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">a<tspan baseline-shift="sub" font-size="75%">r</tspan> = gelu(h<tspan baseline-shift="sub" font-size="75%">r</tspan>)</text>
+<text x="867.0" y="254.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 1024]</text>
+<rect x="954.0" y="192.0" width="196.0" height="84.0" rx="8" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="1052.0" y="213.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc2 (row-parallel)</text>
+<text x="1052.0" y="230.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">z<tspan baseline-shift="sub" font-size="75%">r</tspan> = a<tspan baseline-shift="sub" font-size="75%">r</tspan>·A2<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="1052.0" y="247.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×1024)·(1024×512)</text>
+<text x="1052.0" y="264.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 512] partial</text>
+<rect x="1330.0" y="192.0" width="130.0" height="84.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="1395.0" y="222.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">y = x + z + b2</text>
+<text x="1395.0" y="238.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 512]</text>
+<text x="1395.0" y="254.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">same on both</text>
+<line x1="255.0" y1="234.0" x2="274.0" y2="234.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="405.0" y1="234.0" x2="426.0" y2="234.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="557.0" y1="234.0" x2="578.0" y2="234.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="781.0" y1="234.0" x2="802.0" y2="234.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="931.0" y1="234.0" x2="952.0" y2="234.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1151.0" y1="234.0" x2="1172.0" y2="234.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1307.0" y1="234.0" x2="1328.0" y2="234.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="104.0" y="286.0" width="150.0" height="84.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="179.0" y="316.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">x</text>
+<text x="179.0" y="332.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 512]</text>
+<text x="179.0" y="348.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">all 256 tokens</text>
+<rect x="276.0" y="286.0" width="128.0" height="84.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="340.0" y="316.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">LayerNorm</text>
+<text x="340.0" y="332.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 512]</text>
+<text x="340.0" y="348.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">same on both</text>
+<rect x="580.0" y="286.0" width="200.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="680.0" y="307.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc1 (column-parallel)</text>
+<text x="680.0" y="324.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">h<tspan baseline-shift="sub" font-size="75%">r</tspan> = x·A1<tspan baseline-shift="sub" font-size="75%">r</tspan> + b1<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="680.0" y="341.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×512)·(512×1024)</text>
+<text x="680.0" y="358.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 1024]</text>
+<rect x="804.0" y="286.0" width="126.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="867.0" y="316.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">GELU</text>
+<text x="867.0" y="332.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">a<tspan baseline-shift="sub" font-size="75%">r</tspan> = gelu(h<tspan baseline-shift="sub" font-size="75%">r</tspan>)</text>
+<text x="867.0" y="348.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 1024]</text>
+<rect x="954.0" y="286.0" width="196.0" height="84.0" rx="8" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="1052.0" y="307.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc2 (row-parallel)</text>
+<text x="1052.0" y="324.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">z<tspan baseline-shift="sub" font-size="75%">r</tspan> = a<tspan baseline-shift="sub" font-size="75%">r</tspan>·A2<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="1052.0" y="341.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×1024)·(1024×512)</text>
+<text x="1052.0" y="358.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 512] partial</text>
+<rect x="1330.0" y="286.0" width="130.0" height="84.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="1395.0" y="316.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">y = x + z + b2</text>
+<text x="1395.0" y="332.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 512]</text>
+<text x="1395.0" y="348.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">same on both</text>
+<line x1="255.0" y1="328.0" x2="274.0" y2="328.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="405.0" y1="328.0" x2="426.0" y2="328.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="557.0" y1="328.0" x2="578.0" y2="328.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="781.0" y1="328.0" x2="802.0" y2="328.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="931.0" y1="328.0" x2="952.0" y2="328.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1151.0" y1="328.0" x2="1172.0" y2="328.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1307.0" y1="328.0" x2="1328.0" y2="328.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="428.0" y="186.0" width="128.0" height="190.0" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="492.0" y="261.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7280" text-anchor="middle" font-weight="700" xml:space="preserve">f = identity</text>
+<text x="492.0" y="277.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">x is already full</text>
+<text x="492.0" y="293.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">on both ranks:</text>
+<text x="492.0" y="309.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">no communication</text>
+<rect x="1174.0" y="186.0" width="132.0" height="190.0" rx="10" fill="#fde8f3" stroke="#c0267a" stroke-width="2"/>
+<text x="1240.0" y="245.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="14" fill="#c0267a" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-REDUCE</text>
+<text x="1240.0" y="261.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">g: z = z<tspan baseline-shift="sub" font-size="75%">0</tspan> + z<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<text x="1240.0" y="277.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256,2,512]</text>
+<text x="1240.0" y="293.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256,2,512]</text>
+<text x="1240.0" y="309.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">layers.py:1480</text>
+<text x="1240.0" y="325.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">→ mappings.py:35</text>
+<text x="104.0" y="398.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">SP off: 1 ALL-REDUCE per block in forward. Outside the TP region both ranks hold the same full [256, 2, 512] activation: a duplicate copy.</text>
+<text x="24.0" y="444.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="16" fill="#7048c8" text-anchor="start" font-weight="700" xml:space="preserve">SP on  (--sp)</text>
+<text x="24.0" y="507.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">rank 0</text>
+<text x="24.0" y="601.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">rank 1</text>
+<rect x="104.0" y="460.0" width="150.0" height="84.0" rx="8" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="179.0" y="490.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">x (shard)</text>
+<text x="179.0" y="506.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[128, 2, 512]</text>
+<text x="179.0" y="522.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">tokens 0–127</text>
+<rect x="276.0" y="460.0" width="128.0" height="84.0" rx="8" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="340.0" y="490.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">LayerNorm</text>
+<text x="340.0" y="506.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[128, 2, 512]</text>
+<text x="340.0" y="522.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">own tokens only</text>
+<rect x="580.0" y="460.0" width="200.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="680.0" y="481.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc1 (column-parallel)</text>
+<text x="680.0" y="498.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">h<tspan baseline-shift="sub" font-size="75%">r</tspan> = x·A1<tspan baseline-shift="sub" font-size="75%">r</tspan> + b1<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="680.0" y="515.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×512)·(512×1024)</text>
+<text x="680.0" y="532.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 1024]</text>
+<rect x="804.0" y="460.0" width="126.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="867.0" y="490.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">GELU</text>
+<text x="867.0" y="506.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">a<tspan baseline-shift="sub" font-size="75%">r</tspan> = gelu(h<tspan baseline-shift="sub" font-size="75%">r</tspan>)</text>
+<text x="867.0" y="522.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 1024]</text>
+<rect x="954.0" y="460.0" width="196.0" height="84.0" rx="8" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="1052.0" y="481.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc2 (row-parallel)</text>
+<text x="1052.0" y="498.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">z<tspan baseline-shift="sub" font-size="75%">r</tspan> = a<tspan baseline-shift="sub" font-size="75%">r</tspan>·A2<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="1052.0" y="515.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×1024)·(1024×512)</text>
+<text x="1052.0" y="532.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 512] partial</text>
+<rect x="1330.0" y="460.0" width="130.0" height="84.0" rx="8" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="1395.0" y="490.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">y = x + z + b2</text>
+<text x="1395.0" y="506.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[128, 2, 512]</text>
+<text x="1395.0" y="522.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">tokens 0–127</text>
+<line x1="255.0" y1="502.0" x2="274.0" y2="502.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="405.0" y1="502.0" x2="426.0" y2="502.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="557.0" y1="502.0" x2="578.0" y2="502.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="781.0" y1="502.0" x2="802.0" y2="502.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="931.0" y1="502.0" x2="952.0" y2="502.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1151.0" y1="502.0" x2="1172.0" y2="502.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1307.0" y1="502.0" x2="1328.0" y2="502.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="104.0" y="554.0" width="150.0" height="84.0" rx="8" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="179.0" y="584.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">x (shard)</text>
+<text x="179.0" y="600.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[128, 2, 512]</text>
+<text x="179.0" y="616.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">tokens 128–255</text>
+<rect x="276.0" y="554.0" width="128.0" height="84.0" rx="8" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="340.0" y="584.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">LayerNorm</text>
+<text x="340.0" y="600.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[128, 2, 512]</text>
+<text x="340.0" y="616.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">own tokens only</text>
+<rect x="580.0" y="554.0" width="200.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="680.0" y="575.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc1 (column-parallel)</text>
+<text x="680.0" y="592.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">h<tspan baseline-shift="sub" font-size="75%">r</tspan> = x·A1<tspan baseline-shift="sub" font-size="75%">r</tspan> + b1<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="680.0" y="609.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×512)·(512×1024)</text>
+<text x="680.0" y="626.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 1024]</text>
+<rect x="804.0" y="554.0" width="126.0" height="84.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="867.0" y="584.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">GELU</text>
+<text x="867.0" y="600.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">a<tspan baseline-shift="sub" font-size="75%">r</tspan> = gelu(h<tspan baseline-shift="sub" font-size="75%">r</tspan>)</text>
+<text x="867.0" y="616.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256, 2, 1024]</text>
+<rect x="954.0" y="554.0" width="196.0" height="84.0" rx="8" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="1052.0" y="575.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">fc2 (row-parallel)</text>
+<text x="1052.0" y="592.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">z<tspan baseline-shift="sub" font-size="75%">r</tspan> = a<tspan baseline-shift="sub" font-size="75%">r</tspan>·A2<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="1052.0" y="609.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">(512×1024)·(1024×512)</text>
+<text x="1052.0" y="626.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256, 2, 512] partial</text>
+<rect x="1330.0" y="554.0" width="130.0" height="84.0" rx="8" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="1395.0" y="584.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">y = x + z + b2</text>
+<text x="1395.0" y="600.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[128, 2, 512]</text>
+<text x="1395.0" y="616.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">tokens 128–255</text>
+<line x1="255.0" y1="596.0" x2="274.0" y2="596.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="405.0" y1="596.0" x2="426.0" y2="596.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="557.0" y1="596.0" x2="578.0" y2="596.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="781.0" y1="596.0" x2="802.0" y2="596.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="931.0" y1="596.0" x2="952.0" y2="596.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1151.0" y1="596.0" x2="1172.0" y2="596.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<line x1="1307.0" y1="596.0" x2="1328.0" y2="596.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="428.0" y="454.0" width="128.0" height="190.0" rx="10" fill="#ddf4f5" stroke="#0b7f86" stroke-width="2"/>
+<text x="492.0" y="513.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="14" fill="#0b7f86" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-GATHER</text>
+<text x="492.0" y="529.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">concat along s</text>
+<text x="492.0" y="545.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[128,2,512]</text>
+<text x="492.0" y="561.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [256,2,512]</text>
+<text x="492.0" y="577.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">layers.py:571</text>
+<text x="492.0" y="593.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">(sync, compute stream)</text>
+<rect x="1174.0" y="454.0" width="132.0" height="190.0" rx="10" fill="#fde2e2" stroke="#b91c1c" stroke-width="2"/>
+<text x="1240.0" y="513.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="700" xml:space="preserve">REDUCE-SCATTER</text>
+<text x="1240.0" y="529.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">sum, keep my tokens</text>
+<text x="1240.0" y="545.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">[256,2,512]</text>
+<text x="1240.0" y="561.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">→ [128,2,512]</text>
+<text x="1240.0" y="577.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">layers.py:1476</text>
+<text x="1240.0" y="593.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">(sync, compute stream)</text>
+<text x="104.0" y="666.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">SP on: 1 ALL-GATHER + 1 REDUCE-SCATTER per block (together the same bytes as one all-reduce). Outside the TP region each rank holds only its half: [128, 2, 512].</text>
+<rect x="24.0" y="684.0" width="1436.0" height="76.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="40.0" y="708.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="14" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Rule:</text>
+<text x="90.0" y="708.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">ENTER the TP region (column-parallel input needs every token):  SP off → nothing (identity f)   ·   SP on → ALL-GATHER</text>
+<text x="90.0" y="730.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">LEAVE the TP region (row-parallel output is a partial sum):  SP off → ALL-REDUCE (all tokens to all)   ·   SP on → REDUCE-SCATTER (my tokens to me)</text>
+<text x="90.0" y="750.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">Attention is the same pattern: column = linear_qkv, A<tspan baseline-shift="sub" font-size="75%">qkv,r</tspan> is 512×768 (4 of 8 heads); core attention per rank → [256, 2, 256]; row = linear_proj, A<tspan baseline-shift="sub" font-size="75%">proj,r</tspan> is 256×512.</text>
+</svg>

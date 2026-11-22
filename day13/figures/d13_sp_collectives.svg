@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1484 600" width="1484" height="600"><defs><marker id="ah0b7f86" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7f86"/></marker><marker id="ah1f2937" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/></marker><marker id="ah2f9e5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="ah3b6fd4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd4"/></marker><marker id="ah6b7280" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker><marker id="ah7048c8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048c8"/></marker><marker id="ah94a3b8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker><marker id="ahb91c1c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/></marker><marker id="ahc0267a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c0267a"/></marker><marker id="ahcbd5e1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/></marker><marker id="ahe3891b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3891b"/></marker></defs>
+<rect width="1484" height="600" rx="16" fill="#ffffff"/>
+<text x="24.0" y="40.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="22" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">The three TP collectives on two ranks, drawn on one activation [s, b, h] = [256, 2, 512]</text>
+<text x="24.0" y="64.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">Each tensor is drawn as two halves of the sequence: tokens 0–127 (top) and 128–255 (bottom). P<tspan baseline-shift="sub" font-size="75%">0</tspan>, P<tspan baseline-shift="sub" font-size="75%">1</tspan> = partial sums from a row-parallel matmul; X = an activation.</text>
+<rect x="24.0" y="82.0" width="18.0" height="18.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="49.0" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">replicated (full, same on both ranks)</text>
+<rect x="348.8" y="82.0" width="18.0" height="18.0" rx="4" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="373.8" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">sequence-sharded (own tokens)</text>
+<rect x="614.4" y="82.0" width="18.0" height="18.0" rx="4" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="639.4" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">hidden-sharded (TP region)</text>
+<rect x="857.8" y="82.0" width="18.0" height="18.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="882.8" y="96.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">partial sum (needs a reduction)</text>
+<rect x="24.0" y="112.0" width="352.0" height="470.0" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+<rect x="24.0" y="112.0" width="352.0" height="46.0" rx="12" fill="#fde8f3" stroke="#c0267a" stroke-width="2"/>
+<text x="200.0" y="133.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="16" fill="#c0267a" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-REDUCE</text>
+<text x="200.0" y="151.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">everyone gets the full sum</text>
+<text x="38.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">before</text>
+<text x="123.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">rank 0</text>
+<rect x="64.0" y="190.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="123.0" y="218.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan></text>
+<rect x="64.0" y="238.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="123.0" y="266.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan></text>
+<text x="277.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">rank 1</text>
+<rect x="218.0" y="190.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="277.0" y="218.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="218.0" y="238.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="277.0" y="266.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="44.0" y="300.0" width="312.0" height="30.0" rx="8" fill="#fde8f3" stroke="#c0267a" stroke-width="2"/>
+<text x="200.0" y="320.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">in [256,2,512]  →  out [256,2,512]</text>
+<line x1="123.0" y1="288.0" x2="123.0" y2="299.0" stroke="#c0267a" stroke-width="1.6" marker-end="url(#ahc0267a)"/>
+<line x1="123.0" y1="331.0" x2="123.0" y2="346.0" stroke="#c0267a" stroke-width="1.6" marker-end="url(#ahc0267a)"/>
+<line x1="277.0" y1="288.0" x2="277.0" y2="299.0" stroke="#c0267a" stroke-width="1.6" marker-end="url(#ahc0267a)"/>
+<line x1="277.0" y1="331.0" x2="277.0" y2="346.0" stroke="#c0267a" stroke-width="1.6" marker-end="url(#ahc0267a)"/>
+<text x="38.0" y="344.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">after</text>
+<rect x="64.0" y="350.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="123.0" y="378.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan>+P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="64.0" y="398.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="123.0" y="426.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan>+P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="218.0" y="350.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="277.0" y="378.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan>+P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="218.0" y="398.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="277.0" y="426.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan>+P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<text x="38.0" y="470.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Used here for</text>
+<text x="38.0" y="489.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">fwd: after a row-parallel linear (g), SP off</text>
+<text x="38.0" y="506.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">bwd: input grad of a column-parallel</text>
+<text x="38.0" y="523.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">      linear (f), SP off</text>
+<text x="38.0" y="540.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">also: embedding, cross-entropy, and</text>
+<text x="38.0" y="557.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">      LN grads once per step (SP on)</text>
+<rect x="392.0" y="112.0" width="352.0" height="470.0" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+<rect x="392.0" y="112.0" width="352.0" height="46.0" rx="12" fill="#fde2e2" stroke="#b91c1c" stroke-width="2"/>
+<text x="568.0" y="133.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="16" fill="#b91c1c" text-anchor="middle" font-weight="700" xml:space="preserve">REDUCE-SCATTER</text>
+<text x="568.0" y="151.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">sum, then keep only my tokens</text>
+<text x="406.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">before</text>
+<text x="491.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">rank 0</text>
+<rect x="432.0" y="190.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="491.0" y="218.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan></text>
+<rect x="432.0" y="238.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="491.0" y="266.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan></text>
+<text x="645.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">rank 1</text>
+<rect x="586.0" y="190.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="645.0" y="218.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="586.0" y="238.0" width="118.0" height="48.0" rx="4" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="645.0" y="266.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="412.0" y="300.0" width="312.0" height="30.0" rx="8" fill="#fde2e2" stroke="#b91c1c" stroke-width="2"/>
+<text x="568.0" y="320.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">in [256,2,512]  →  out [128,2,512]</text>
+<line x1="491.0" y1="288.0" x2="491.0" y2="299.0" stroke="#b91c1c" stroke-width="1.6" marker-end="url(#ahb91c1c)"/>
+<line x1="491.0" y1="331.0" x2="491.0" y2="346.0" stroke="#b91c1c" stroke-width="1.6" marker-end="url(#ahb91c1c)"/>
+<line x1="645.0" y1="288.0" x2="645.0" y2="299.0" stroke="#b91c1c" stroke-width="1.6" marker-end="url(#ahb91c1c)"/>
+<line x1="645.0" y1="331.0" x2="645.0" y2="346.0" stroke="#b91c1c" stroke-width="1.6" marker-end="url(#ahb91c1c)"/>
+<text x="406.0" y="344.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">after</text>
+<rect x="432.0" y="350.0" width="118.0" height="48.0" rx="4" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="491.0" y="378.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan>+P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="432.0" y="398.0" width="118.0" height="48.0" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="491.0" y="426.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">(not held)</text>
+<rect x="586.0" y="350.0" width="118.0" height="48.0" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="645.0" y="378.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">(not held)</text>
+<rect x="586.0" y="398.0" width="118.0" height="48.0" rx="4" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="645.0" y="426.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">P<tspan baseline-shift="sub" font-size="75%">0</tspan>+P<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<text x="406.0" y="470.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Used here for</text>
+<text x="406.0" y="489.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">fwd: after a row-parallel linear, SP on</text>
+<text x="406.0" y="506.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">      (layers.py:1476)</text>
+<text x="406.0" y="523.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">bwd: input grad of a column-parallel</text>
+<text x="406.0" y="540.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">      linear, SP on (layers.py:650)</text>
+<rect x="760.0" y="112.0" width="352.0" height="470.0" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+<rect x="760.0" y="112.0" width="352.0" height="46.0" rx="12" fill="#ddf4f5" stroke="#0b7f86" stroke-width="2"/>
+<text x="936.0" y="133.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="16" fill="#0b7f86" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-GATHER</text>
+<text x="936.0" y="151.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">concatenate everyone's tokens</text>
+<text x="774.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">before</text>
+<text x="859.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">rank 0</text>
+<rect x="800.0" y="190.0" width="118.0" height="48.0" rx="4" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="859.0" y="218.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">X[0:128]</text>
+<rect x="800.0" y="238.0" width="118.0" height="48.0" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="859.0" y="266.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">(not held)</text>
+<text x="1013.0" y="182.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">rank 1</text>
+<rect x="954.0" y="190.0" width="118.0" height="48.0" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="1013.0" y="218.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">(not held)</text>
+<rect x="954.0" y="238.0" width="118.0" height="48.0" rx="4" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="1013.0" y="266.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">X[128:256]</text>
+<rect x="780.0" y="300.0" width="312.0" height="30.0" rx="8" fill="#ddf4f5" stroke="#0b7f86" stroke-width="2"/>
+<text x="936.0" y="320.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">in [128,2,512]  →  out [256,2,512]</text>
+<line x1="859.0" y1="288.0" x2="859.0" y2="299.0" stroke="#0b7f86" stroke-width="1.6" marker-end="url(#ah0b7f86)"/>
+<line x1="859.0" y1="331.0" x2="859.0" y2="346.0" stroke="#0b7f86" stroke-width="1.6" marker-end="url(#ah0b7f86)"/>
+<line x1="1013.0" y1="288.0" x2="1013.0" y2="299.0" stroke="#0b7f86" stroke-width="1.6" marker-end="url(#ah0b7f86)"/>
+<line x1="1013.0" y1="331.0" x2="1013.0" y2="346.0" stroke="#0b7f86" stroke-width="1.6" marker-end="url(#ah0b7f86)"/>
+<text x="774.0" y="344.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">after</text>
+<rect x="800.0" y="350.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="859.0" y="378.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">X[0:128]</text>
+<rect x="800.0" y="398.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="859.0" y="426.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">X[128:256]</text>
+<rect x="954.0" y="350.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="1013.0" y="378.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">X[0:128]</text>
+<rect x="954.0" y="398.0" width="118.0" height="48.0" rx="4" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="1013.0" y="426.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">X[128:256]</text>
+<text x="774.0" y="470.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Used here for</text>
+<text x="774.0" y="489.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">fwd: input of a column-parallel linear,</text>
+<text x="774.0" y="506.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">      SP on (layers.py:571)</text>
+<text x="774.0" y="523.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">bwd: gradient of a forward reduce-scatter</text>
+<text x="774.0" y="540.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">      (mappings.py:377), and the re-gather</text>
+<text x="774.0" y="557.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">      of x for the weight grad (layers.py:617)</text>
+<rect x="1128.0" y="112.0" width="332.0" height="470.0" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="1144.0" y="138.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="15" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Two facts to remember</text>
+<text x="1144.0" y="166.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">1.  ALL-REDUCE = REDUCE-SCATTER, then</text>
+<text x="1144.0" y="184.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">     ALL-GATHER</text>
+<text x="1144.0" y="204.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">A ring all-reduce runs exactly these two</text>
+<text x="1144.0" y="220.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">phases. SP just stops halfway, does the</text>
+<text x="1144.0" y="236.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">cheap per-token work (LayerNorm, residual)</text>
+<text x="1144.0" y="252.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">on half the tokens, and finishes later.</text>
+<text x="1144.0" y="268.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">Same bytes on the wire.</text>
+<text x="1144.0" y="300.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">2.  Every forward op has a mirror</text>
+<text x="1144.0" y="318.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">     in backward</text>
+<text x="1144.0" y="344.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="start" font-weight="700" xml:space="preserve">forward</text>
+<text x="1444.0" y="344.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="end" font-weight="700" xml:space="preserve">backward</text>
+<rect x="1140.0" y="352.0" width="128.0" height="24.0" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="1204.0" y="368.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="700" xml:space="preserve">identity (f)</text>
+<line x1="1272.0" y1="364.0" x2="1314.0" y2="364.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="1320.0" y="352.0" width="128.0" height="24.0" rx="6" fill="#fde8f3" stroke="#c0267a" stroke-width="1.5"/>
+<text x="1384.0" y="368.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#c0267a" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-REDUCE</text>
+<rect x="1140.0" y="382.0" width="128.0" height="24.0" rx="6" fill="#fde8f3" stroke="#c0267a" stroke-width="1.5"/>
+<text x="1204.0" y="398.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#c0267a" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-REDUCE (g)</text>
+<line x1="1272.0" y1="394.0" x2="1314.0" y2="394.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="1320.0" y="382.0" width="128.0" height="24.0" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="1384.0" y="398.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="700" xml:space="preserve">identity</text>
+<rect x="1140.0" y="412.0" width="128.0" height="24.0" rx="6" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="1204.0" y="428.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#0b7f86" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-GATHER</text>
+<line x1="1272.0" y1="424.0" x2="1314.0" y2="424.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="1320.0" y="412.0" width="128.0" height="24.0" rx="6" fill="#fde2e2" stroke="#b91c1c" stroke-width="1.5"/>
+<text x="1384.0" y="428.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#b91c1c" text-anchor="middle" font-weight="700" xml:space="preserve">REDUCE-SCATTER</text>
+<rect x="1140.0" y="442.0" width="128.0" height="24.0" rx="6" fill="#fde2e2" stroke="#b91c1c" stroke-width="1.5"/>
+<text x="1204.0" y="458.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#b91c1c" text-anchor="middle" font-weight="700" xml:space="preserve">REDUCE-SCATTER</text>
+<line x1="1272.0" y1="454.0" x2="1314.0" y2="454.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="1320.0" y="442.0" width="128.0" height="24.0" rx="6" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="1384.0" y="458.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#0b7f86" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-GATHER</text>
+<rect x="1140.0" y="472.0" width="128.0" height="24.0" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="1204.0" y="488.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle" font-weight="700" xml:space="preserve">split (no comm)</text>
+<line x1="1272.0" y1="484.0" x2="1314.0" y2="484.0" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ah6b7280)"/>
+<rect x="1320.0" y="472.0" width="128.0" height="24.0" rx="6" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="1384.0" y="488.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11" fill="#0b7f86" text-anchor="middle" font-weight="700" xml:space="preserve">ALL-GATHER</text>
+<text x="1144.0" y="520.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">Why: the gradient of "copy to everyone" is</text>
+<text x="1144.0" y="536.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">"sum everyone's gradients"; the gradient of</text>
+<text x="1144.0" y="552.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">"concatenate" is "take my slice of the sum".</text>
+</svg>
