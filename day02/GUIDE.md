@@ -137,12 +137,12 @@ Cost model, $S$ = tensor bytes, $\alpha$ = per-message latency, $\beta$ = per-li
 **Ring:**
 
 $$
-T_\text{ring} \approx 2(W-1)\,\alpha + \frac{2(W-1)}{W}\cdot\frac{S}{\beta}
+T_\text{ring} \approx 2(W-1)\ \alpha + \frac{2(W-1)}{W}\cdot\frac{S}{\beta}
 $$
 
-Bytes **sent** per rank are $\frac{2(W-1)}{W}\,S$ for equal chunks: less than $2S$ and nearly independent of $W$. The same amount is also received, so sent plus received is twice that.
+Bytes **sent** per rank are $\frac{2(W-1)}{W}\ S$ for equal chunks: less than $2S$ and nearly independent of $W$. The same amount is also received, so sent plus received is twice that.
 
-**Naive** (everyone sends to rank 0, rank 0 sums and sends back): rank 0 receives $(W-1)\,S$ and sends $(W-1)\,S$, so the root link is the bottleneck.
+**Naive** (everyone sends to rank 0, rank 0 sums and sends back): rank 0 receives $(W-1)\ S$ and sends $(W-1)\ S$, so the root link is the bottleneck.
 
 With uneven chunks ($S$ not divisible by $W$) one rank's sent bytes can differ slightly from that formula, though the average over ranks still matches. `simulate_ring.py` counts how often each rank's data was added to each chunk and requires exactly once; it tracks *coverage*, not values, so the numeric self-test of the real ring stays necessary.
 

@@ -97,7 +97,7 @@ This is the main block today. Write each prediction in notes §1 before you open
 
 ### §1 The hand-worked example: two stages, four microbatches
 
-**The model.** Four residual MLP blocks, $\text{out} = x + \mathrm{fc2}(\operatorname{gelu}(\mathrm{fc1}(x)))$, d = 512, ffn = 2048, activations `[seq, batch, d]` as in Megatron and Day 11. **Stage 0 (rank 0, GPU 0) owns blocks 0–1; stage 1 (rank 1, GPU 1) owns blocks 2–3.** The effective batch is 8 sequences of 256 tokens. With M = 4 each microbatch is `[256, 2, 512]`.
+**The model.** Four residual MLP blocks, $\text{out} = x + \mathrm{fc2}(\mathrm{gelu}(\mathrm{fc1}(x)))$, d = 512, ffn = 2048, activations `[seq, batch, d]` as in Megatron and Day 11. **Stage 0 (rank 0, GPU 0) owns blocks 0–1; stage 1 (rank 1, GPU 1) owns blocks 2–3.** The effective batch is 8 sequences of 256 tokens. With M = 4 each microbatch is `[256, 2, 512]`.
 
 | | Stage 0 (rank 0) | Stage 1 (rank 1) |
 | --- | --- | --- |

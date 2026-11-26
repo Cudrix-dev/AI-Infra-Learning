@@ -314,7 +314,7 @@ Run `python experiments/day09_mixed_precision/find_symbols.py` for the line numb
 ### Stop 3 (10 min, required): clipping. `torch/nn/utils/clip_grad.py`: `clip_grad_norm_` `:185`, `_get_total_norm` `:49`, `_clip_grads_with_norm_` `:120`
 
 - `_get_total_norm`: per-device, per-dtype grouped norms, then the norm of norms. It reads whatever is in `.grad`.
-- `_clip_grads_with_norm_`: $\text{clip\_coef} = \text{max\_norm} / (\text{total\_norm} + 10^{-6})$, clamped to 1, multiplied in place. No host sync (the coefficient stays on the GPU).
+- `_clip_grads_with_norm_`: $c = \text{max norm} / (\text{total norm} + 10^{-6})$ (`clip_coef`), clamped to 1, multiplied in place. No host sync (the coefficient stays on the GPU).
 
 *Q: with `clip_before_unscale`, compute the coefficient from your log's C1 value and check that AdamW received max_norm / S.*
 

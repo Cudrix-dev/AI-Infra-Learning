@@ -86,9 +86,9 @@ The post-accumulate hook still fires on every backward. After microbatch j it se
 
 The big-batch loss is the mean over all G rows. Each rank's contribution must be its own mean over its rows in the window, and DDP's 1/W average turns the per-rank means into the global mean (equal rows per rank, Day 02 §1.3). Microbatch j of a window with $N$ rows on this rank:
 
-$$\mathcal{L}_\text{rank} = \sum_j \frac{n_j}{N}\,\overline{\ell}_j \qquad\Rightarrow\qquad \text{weight}_j = \frac{n_j}{N} = \frac{1}{K}\ \text{only if all K microbatches have } m \text{ rows}$$
+$$\mathcal{L}_\text{rank} = \sum_j \frac{n_j}{N}\ \overline{\ell}_j \qquad\Rightarrow\qquad \text{weight}_j = \frac{n_j}{N} = \frac{1}{K}\ \text{only if all K microbatches have } m \text{ rows}$$
 
-`train_accum.py` uses $w = \text{rows}_j / \text{rows\_in\_window}$. Three ways to get it wrong, each a control today:
+`train_accum.py` uses $w = \text{rows}_j / \text{rows in window}$. Three ways to get it wrong, each a control today:
 
 | Mistake | Gradient | Caught by |
 | --- | --- | --- |
@@ -122,9 +122,9 @@ Averaging is linear and $\bar g_1$ is identical on both ranks, so the result is 
 
 A rough cost model per optimizer step, with $T_\text{fb}(m)$ one forward+backward, $T_\text{opt}$ the optimizer and scheduler, and $C$ the per-sync overhead you measured on Day 03 (not just wire time; Day 03's ablation showed that most of DDP's +4.5 ms survives without any communication):
 
-$$T_\text{nosync}(K) \approx K\,T_\text{fb}(m) + T_\text{opt} + C, \qquad T_\text{every}(K) \approx K\,T_\text{fb}(m) + T_\text{opt} + K\,C$$
+$$T_\text{nosync}(K) \approx K\ T_\text{fb}(m) + T_\text{opt} + C, \qquad T_\text{every}(K) \approx K\ T_\text{fb}(m) + T_\text{opt} + K\ C$$
 
-On NVLink $C$ is a few ms, so the gap grows like $(K-1)\,C$. With P2P disabled $C$ was ~15 ms on Day 03's host (regimes table); it depends on the host, so measure it at K = 1. Either way `no_sync` should matter much more there. Per sample, `no_sync` amortizes both $C$ and $T_\text{opt}$ over K microbatches.
+On NVLink $C$ is a few ms, so the gap grows like $(K-1)\ C$. With P2P disabled $C$ was ~15 ms on Day 03's host (regimes table); it depends on the host, so measure it at K = 1. Either way `no_sync` should matter much more there. Per sample, `no_sync` amortizes both $C$ and $T_\text{opt}$ over K microbatches.
 
 ### 1.5 How `no_sync()` works: the decision is taken in forward
 

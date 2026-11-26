@@ -292,17 +292,12 @@ The tables below use three levels of aggregation: **rank → training step → e
 
 **1. Measure four boundaries on each rank in each step.** `time.perf_counter()` returns seconds. The GPU is synchronized before each boundary, so the intervals include CPU submission and waiting as well as GPU execution, rather than only kernel launch time.
 
-$$
-\begin{aligned}
-t_0 &\xrightarrow{\ \text{forward + loss + backward}\ } t_1\\
-t_1 &\xrightarrow{\ \text{flat-buffer creation + all-reduce + averaging + copy-back}\ } t_2\\
-t_2 &\xrightarrow{\ \text{optimizer.step + scheduler.step}\ } t_3\\[6pt]
-\text{fwd\_bwd\_ms} &= (t_1 - t_0) \times 1000\\
-\text{sync\_ms} &= (t_2 - t_1) \times 1000\\
-\text{optim\_ms} &= (t_3 - t_2) \times 1000\\
-\text{core\_ms} &= (t_3 - t_0) \times 1000
-\end{aligned}
-$$
+| Column | Interval in ms | What runs in it |
+| --- | --- | --- |
+| `fwd_bwd_ms` | $(t_1 - t_0) \times 1000$ | forward + loss + backward |
+| `sync_ms` | $(t_2 - t_1) \times 1000$ | flat-buffer creation + all-reduce + averaging + copy-back |
+| `optim_ms` | $(t_3 - t_2) \times 1000$ | `optimizer.step` + `scheduler.step` |
+| `core_ms` | $(t_3 - t_0) \times 1000$ | all of the above |
 
 Core is measured directly across the whole interval. It excludes batch generation/transfer, zero_grad, checks and logging. The wider loop includes these activities but is reported as a mean, so it must not be subtracted from the core median to estimate overhead. A single-rank run still has a tiny sync-function/timer overhead; the table displays a dash because there is no cross-rank gradient communication.
 
@@ -310,14 +305,14 @@ Core is measured directly across the whole interval. It excludes batch generatio
 
 $$
 \begin{aligned}
-\text{slowest\_step}[k,i,p] &= \max_{r} d[k,i,r,p]\\
-\text{run\_time}[k,p] &= \operatorname*{median}_{i \in \text{97 timed steps}} \text{slowest\_step}[k,i,p]
+S[k,i,p] &= \max_{r} d[k,i,r,p] && \text{the slowest rank in step } i\\
+T[k,p] &= \mathrm{median}_{i} S[k,i,p] && \text{over the 97 timed steps } i
 \end{aligned}
 $$
 
 This models the slow-rank cost of synchronous training. The maximum is taken independently for each phase and for the whole core interval; their slowest ranks need not be the same. These are local interval durations, not globally aligned cross-rank timestamps.
 
-**3. Summarize three repeats.** Each time column is $\operatorname{median}_k(\text{run\_time}[k,p])$. For `core ms [min–max]`, the bracket contains the minimum and maximum of the **three run-level core medians**, not the fastest/slowest individual training steps and not a confidence interval.
+**3. Summarize three repeats.** Each time column is $\mathrm{median}_k(T[k,p])$. For `core ms [min–max]`, the bracket contains the minimum and maximum of the **three run-level core medians**, not the fastest/slowest individual training steps and not a confidence interval.
 
 The actual two-GPU strong-scaling runs explain the displayed numbers:
 
@@ -333,33 +328,33 @@ Sorting the core medians gives 39.494605, 41.352207, 41.621006, hence **41.35 [3
 
 $$
 \begin{aligned}
-\text{sync\_share}[k] &= \text{run\_time}[k,\text{sync}] / \text{run\_time}[k,\text{core}]\\
-\text{displayed share} &= 100 \times \operatorname{median}_k(\text{sync\_share}[k])\ \%
+\rho[k] &= T[k,\text{sync}] / T[k,\text{core}]\\
+\text{displayed share} &= 100 \times \mathrm{median}_k(\rho[k]) \text{ percent}
 \end{aligned}
 $$
 
-Here $\operatorname{median}(11.0446\%,\ 11.2341\%,\ 15.9879\%) = 11.2341\%$, displayed as **11.2%**. Dividing the displayed 4.60 by 41.35 instead gives about 11.1%; those two independently summarized, rounded columns are not the values used to compute the final share. This share is a ratio of run-level medians, not the mean of per-step percentages.
+Here the median of 11.0446%, 11.2341% and 15.9879% is 11.2341%, displayed as **11.2%**. Dividing the displayed 4.60 by 41.35 instead gives about 11.1%; those two independently summarized, rounded columns are not the values used to compute the final share. This share is a ratio of run-level medians, not the mean of per-step percentages.
 
 **5. Compute core tokens/s from global work, not local work.** Medium sequence length is 256. In this synthetic workload every token is valid:
 
 $$
 \begin{aligned}
-\text{tokens\_per\_step}[k] &= \text{global\_batch}[k] \times \text{sequence\_length}\\
-\text{throughput}[k] &= \text{tokens\_per\_step}[k] / (\text{run\_time}[k,\text{core}] / 1000)\\
-\text{displayed tokens/s} &= \operatorname{median}_k(\text{throughput}[k])
+n[k] &= B[k] \times L && B[k] = \text{global batch},\ L = \text{sequence length}\\
+Q[k] &= n[k] / (T[k,\text{core}] / 1000) && \text{tokens per second}\\
+\text{displayed tokens/s} &= \mathrm{median}_k(Q[k])
 \end{aligned}
 $$
 
 For strong scaling both one and two GPUs process **16 × 256 = 4096 global tokens per step**. The two-GPU median-core run gives $4096 / (41.352207 / 1000) \approx 99{,}052\ \text{tokens/s}$; the single-GPU median-core run gives $4096 / (57.621981 / 1000) \approx 71{,}084\ \text{tokens/s}$. Do not multiply by two again: the global batch already includes both ranks. For weak scaling, the two-GPU global batch grows to 32, so its numerator is **8192**, not 4096.
 
-The column is training **tokens per second**, not milliseconds per token and not autoregressive generation throughput. If a time-per-token statistic is wanted, $\text{ms/token} = \text{run\_core\_ms} / \text{tokens\_per\_step} = 1000 / \text{throughput}$.
+The column is training **tokens per second**, not milliseconds per token and not autoregressive generation throughput. If a time-per-token statistic is wanted, $\text{ms/token} = T[k,\text{core}] / n[k] = 1000 / Q[k]$.
 
 **6. Compute speedup and efficiency against the baseline of the same repeat.** Let N be the number of GPUs, $Q[N,k]$ the global core throughput and $T[N,k]$ the run core time:
 
 $$
 \begin{aligned}
 \text{speedup}[N,k] &= Q[N,k] / Q[1,k]\\
-\text{efficiency}[N,k] &= \text{speedup}[N,k] / N\\[6pt]
+\text{efficiency}[N,k] &= \text{speedup}[N,k] / N\\
 \text{Strong, fixed global batch:}\quad \text{speedup}[N,k] &= T[1,k] / T[N,k]\\
 \text{Weak, fixed local batch:}\quad \text{speedup}[N,k] &= N \times T[1,k] / T[N,k]
 \end{aligned}
@@ -413,7 +408,7 @@ They do not establish long-term instance reliability, exclusive-host performance
 
 **Why is ring bandwidth-efficient but slow for small messages?** Each rank sends $2(W-1)$ chunks of $S/W$ bytes in the equal-chunk model, but every sequential round incurs overhead. For uneven chunks the average count still matches. See section 2.2 and the integer send counters in section 5.
 
-**Why can Adam hide a missing division in the first update?** With zero initial moments, bias correction gives a gradient-dependent term approximately $-\mathrm{lr}\,g/(|g|+\varepsilon)$. Scaling a nonzero gradient by positive world size barely changes this ratio when its magnitude is much larger than epsilon. The common AdamW decay term is unchanged too. This is not mathematical equivalence: epsilon, later moments, clipping and other optimizers can expose the error. In the control, A failed at 1.635e-2 while B passed at 2.649e-6. Gradient parity is the sharper check.
+**Why can Adam hide a missing division in the first update?** With zero initial moments, bias correction gives a gradient-dependent term approximately $-\mathrm{lr}\ g/(|g|+\varepsilon)$. Scaling a nonzero gradient by positive world size barely changes this ratio when its magnitude is much larger than epsilon. The common AdamW decay term is unchanged too. This is not mathematical equivalence: epsilon, later moments, clipping and other optimizers can expose the error. In the control, A failed at 1.635e-2 while B passed at 2.649e-6. Gradient parity is the sharper check.
 
 **Why are wait and timing synchronization different?** A stream dependency allows subsequent GPU work to use the result safely, while an explicit device synchronize lets the CPU timer wait for actual completion. Neither implies a compute/communication overlap benefit in the synchronous teaching loop. See sections 3.6–3.7.
 

@@ -108,8 +108,10 @@ Write each prediction in notes §1 before you open the `<details>`.
 Megatron gives every rank a coordinate for each kind of parallelism and numbers the ranks so that the **leftmost** kind in the order string changes fastest. The default order is `tp-cp-ep-dp-pp` (`initialize_model_parallel`'s `order` argument, `parallel_state.py:617`). Today CP (context parallel) and EP (expert parallel) are 1, so only TP, DP and PP matter. A global rank is a mixed-radix number whose lowest digit is the TP rank:
 
 $$
-\text{rank} = \text{tp\_rank} + \text{TP} \cdot (\text{dp\_rank} + \text{DP} \cdot \text{pp\_rank})
+\text{rank} = r_\text{tp} + \text{TP} \cdot (r_\text{dp} + \text{DP} \cdot r_\text{pp})
 $$
+
+where $r_\text{tp}$, $r_\text{dp}$ and $r_\text{pp}$ are the rank's TP, DP and PP coordinates.
 
 It is the same rule as a 3-D array laid out in memory with TP as the contiguous axis. `generate_masked_orthogonal_rank_groups` (`parallel_state.py:269`) states it in its docstring, then solves the reverse problem: list the ranks that share some coordinates and vary the others.
 
@@ -421,7 +423,7 @@ This is Day 12's 1F1B at P = 2, M = 8. Both TP ranks of a stage run the same ord
 
 #### §6.4 Idle time: what the trace shows, and what it cannot
 
-**Idealized [derived].** With t_F = 1, t_B = 2 and free communication, 1F1B at P = 2, M = 8 takes $(M + P - 1)(t_F + t_B) = 27$ units. Each stage idles 3, a bubble of $(P - 1)/(M + P - 1) = 11.1\%$. Stage 1 idles before F0 (fill) and after B7. Stage 0 idles while the first gradient makes its round trip and before its last backward (drain).
+**Idealized [derived].** With t_F = 1, t_B = 2 and free communication, 1F1B at P = 2, M = 8 takes $(M + P - 1)(t_F + t_B) = 27$ units. Each stage idles 3, a bubble of $(P - 1)/(M + P - 1) = 1/9$, or 11.1 %. Stage 1 idles before F0 (fill) and after B7. Stage 0 idles while the first gradient makes its round trip and before its last backward (drain).
 
 **Measured, stack step, `tp2pp2` [pre-test, profiled].** The same pattern appears, at profiler-inflated scale:
 

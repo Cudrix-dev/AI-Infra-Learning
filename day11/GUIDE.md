@@ -99,7 +99,7 @@ Shapes used in the real check (Day 01's medium MLP): activations `[seq 256, batc
 
 ### 1.1 The tiny example: who owns what
 
-One block, $y = W_2 \cdot \operatorname{relu}(W_1 \cdot x + b_1) + b_2$, with 2 tokens, d = 4, ffn = 4 (2 hidden units per rank). ReLU only keeps the numbers integers; GELU behaves the same way. Run it (CPU, any machine with torch):
+One block, $y = W_2 \cdot \mathrm{relu}(W_1 \cdot x + b_1) + b_2$, with 2 tokens, d = 4, ffn = 4 (2 hidden units per rank). ReLU only keeps the numbers integers; GELU behaves the same way. Run it (CPU, any machine with torch):
 
 ```bash
 python experiments/day11_tensor_parallel/tiny_example.py
@@ -129,7 +129,7 @@ Rank 1 holds hidden units 2–3: rows 2–3 of `W1` (`W1_r` is `[2, 4]`), entrie
 
 ![Tiny example in standard matrix form: h_r = x·A1_r + b1_r, a_r = relu(h_r), z_r = a_r·A2_r, all-reduce (g), y = z + b2; backward dA2_r = a_rᵀ·G, db2, dh_r, dA1_r = xᵀ·dh_r, dx_r = dh_r·A1_rᵀ, all-reduce (f); one worked entry highlighted per product](figures/d11_tiny_example.svg)
 
-PyTorch keeps the weight gradients in its own layout: $\texttt{W1\_r.grad} = dA_{1,r}^\top$ and $\texttt{W2\_r.grad} = dA_{2,r}^\top$. These are the `dW1_r` and `dW2_r` that the script and the parity log print.
+PyTorch keeps the weight gradients in its own layout: `W1_r.grad` holds $dA_{1,r}^\top$ and `W2_r.grad` holds $dA_{2,r}^\top$. These are the `dW1_r` and `dW2_r` that the script and the parity log print.
 
 The script ends with exact integer checks, including one that **must be False**: rank 0's `dx_r` alone is not the dense `dx`.
 
@@ -168,7 +168,7 @@ Autograd walks the same arrows in reverse. The loss is computed on every rank fr
 <details><summary>Answers P5–P7</summary>
 
 - **P5.** `dz`, replicated (= `dy`, since $y = z + b_2$). The derivative of $\sum_r z_r$ with respect to each `z_r` is 1, so each rank gets $dz_r = dz$ unchanged. **No communication.** A forward all-reduce has an identity backward.
-- **P6.** None. $dW_{2,r} = dy^\top a_r$ uses only local tensors and is exactly the r-th column block of the dense `dW2`. $db_2 = \sum dy$ is identical on every rank because `dy` is. $dh_r = (dy\, W_{2,r}) \odot \operatorname{gelu}'(h_r)$ is the r-th column block of the dense `dh`, so `dW1_r` and `db1_r` are the r-th row blocks of the dense ones. **Weight gradients in TP need no reduction across the TP group**: each rank owns a different slice, and the slice's gradient depends only on local data.
+- **P6.** None. $dW_{2,r} = dy^\top a_r$ uses only local tensors and is exactly the r-th column block of the dense `dW2`. $db_2 = \sum dy$ is identical on every rank because `dy` is. $dh_r = (dy\  W_{2,r}) \odot \mathrm{gelu}'(h_r)$ is the r-th column block of the dense `dh`, so `dW1_r` and `db1_r` are the r-th row blocks of the dense ones. **Weight gradients in TP need no reduction across the TP group**: each rank owns a different slice, and the slice's gradient depends only on local data.
 - **P7.** **Partial sum.** `x` reaches the loss through every hidden unit, and rank r only knows the paths through its own units. The true $dx = \sum_r dh_r W_{1,r}$, so `f`'s backward is an **all-reduce SUM**. Its forward is the identity because `x` was already replicated. A forward copy has a sum as its backward. That is why one communication happens **only in backward**: replication costs nothing going forward, and its transpose is a sum.
 
 `f` and `g` are conjugates (each one's backward is the other's forward). The manual one-block run recorded `forward (1)` and `backward (1)`, each a SUM all-reduce on `[256, 2, 512]`.
@@ -414,7 +414,7 @@ Its input is already replicated, so forward needs nothing. Each rank's gradient 
 
 <details><summary>3. Could you put the activation function after the all-reduce instead and save memory?</summary>
 
-No. $\operatorname{gelu}(\sum_r z_r) \ne \sum_r \operatorname{gelu}(z_r)$, and in any case the activation belongs between the two linears, where it is applied to `h`. `h` is sharded but complete per element, so the activation is exact there. The all-reduce has to come after the second linear, because only then are the per-rank values partial sums.
+No. $\mathrm{gelu}(\sum_r z_r) \ne \sum_r \mathrm{gelu}(z_r)$, and in any case the activation belongs between the two linears, where it is applied to `h`. `h` is sharded but complete per element, so the activation is exact there. The all-reduce has to come after the second linear, because only then are the per-rank values partial sums.
 </details>
 
 <details><summary>4. Per block and per direction, how many bytes does TP=2 all-reduce here, and how does that scale with ffn?</summary>

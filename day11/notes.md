@@ -121,7 +121,7 @@ All eight cases matched the expected failures. [Single-block controls][fp32b1] �
 | FP32 ×2 | 2 | 2 | [256, 2, 512] |
 | FP64 ×1 | 1 | 1 | [256, 2, 512] |
 
-Each call reduced a tensor of 1 MiB in FP32 or 2 MiB in FP64. The size is $256 \times 2 \times 512 \times \text{bytes\_per\_element}$ [derived]. Both reductions operate on all token positions at the model width of 512. The intermediate FFN features remain sharded. [Unit checks][unit] · [FP32 ×1][fp32b1] · [FP32 ×2][fp32b2] · [FP64 ×1][fp64b1]
+Each call reduced a tensor of 1 MiB in FP32 or 2 MiB in FP64. The size is $256 \times 2 \times 512 \times (\text{bytes per element})$ [derived]. Both reductions operate on all token positions at the model width of 512. The intermediate FFN features remain sharded. [Unit checks][unit] · [FP32 ×1][fp32b1] · [FP32 ×2][fp32b2] · [FP64 ×1][fp64b1]
 
 ## 7. My code ↔ Megatron Core (`core_v0.19.2`)
 

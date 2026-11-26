@@ -81,7 +81,7 @@ ZeRO (Rajbhandari et al., 2020) removes the redundancy in stages: stage 1 shards
 
 | Operation | Result |
 | --- | --- |
-| every rank: $K$ × backward | $\text{flat\_grad} = \sum_j w_j g_j$ (full size, local) |
+| every rank: $K$ × backward | `flat_grad` holds $\sum_j w_j g_j$ (full size, local) |
 | `reduce_scatter(flat_grad)` | rank $r$ holds the SUM over ranks for ITS slice $[rS,\ (r+1)S)$; divide by $W$ |
 | AdamW on the slice | only $S = \Psi/W$ elements updated; `exp_avg`, `exp_avg_sq` allocated for $S$ elements |
 | `all_gather(flat_param)` | every rank receives the other slices: full, identical parameters again |

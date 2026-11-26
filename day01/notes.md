@@ -307,7 +307,7 @@ Consider the forward computation for a single token:
 
 $$
 z = hW+b,\qquad
-p_i=\log\operatorname{softmax}(z)_i
+p_i=\log\mathrm{softmax}(z)_i
 =z_i-\log\sum_j e^{z_j},
 \qquad
 L=-p_y
@@ -319,7 +319,7 @@ The log-softmax derivative is:
 
 $$
 \frac{\partial p_i}{\partial z_j}
-=\delta_{ij}-\operatorname{softmax}(z)_j
+=\delta_{ij}-\mathrm{softmax}(z)_j
 =\delta_{ij}-e^{p_j}
 $$
 
@@ -383,7 +383,7 @@ More generally, `del logits` only removes our Python reference. If autograd need
 The attention computation is:
 $$S = \frac{QK^\top}{\sqrt{d_h}} + M$$
 
-$$P = \operatorname{softmax}(S)$$
+$$P = \mathrm{softmax}(S)$$
 
 $$O = PV$$
 
