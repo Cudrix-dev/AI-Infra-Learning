@@ -61,7 +61,7 @@ Today's code imports Day 01 (`train.py`), Day 02 (`ddp_manual.py`, `check_parity
 
 ### 1.1 The problem: the batch you want does not fit, or is not the batch you can afford per step
 
-The global batch is an **optimization** choice (noise scale, LR, number of updates). The microbatch is a **memory and kernel-efficiency** choice: activations scale with the rows in one forward/backward (Day 01: at the start of backward, activations and the `[B·T, V]` logits gradients dominate the peak). Gradient accumulation decouples them: run K forward/backward passes on microbatches of m rows, let the gradients add up in `p.grad`, then take **one** optimizer step.
+The global batch is an **optimization** choice (noise scale, LR, number of updates). The microbatch is a **memory and kernel-efficiency** choice: activations scale with the rows in one forward/backward (Day 01: at the start of backward, activations and the $[B \cdot T,\ V]$ logits gradients dominate the peak). Gradient accumulation decouples them: run K forward/backward passes on microbatches of m rows, let the gradients add up in `p.grad`, then take **one** optimizer step.
 
 $$G = W \times K \times m \qquad \text{per-GPU batch per optimizer step} = K \times m \qquad \text{optimizer steps} = \text{windows}$$
 
@@ -88,7 +88,7 @@ The big-batch loss is the mean over all G rows. Each rank's contribution must be
 
 $$\mathcal{L}_\text{rank} = \sum_j \frac{n_j}{N}\,\overline{\ell}_j \qquad\Rightarrow\qquad \text{weight}_j = \frac{n_j}{N} = \frac{1}{K}\ \text{only if all K microbatches have } m \text{ rows}$$
 
-`train_accum.py` uses `w = rows_j / rows_in_window`. Three ways to get it wrong, each a control today:
+`train_accum.py` uses $w = \text{rows}_j / \text{rows\_in\_window}$. Three ways to get it wrong, each a control today:
 
 | Mistake | Gradient | Caught by |
 | --- | --- | --- |

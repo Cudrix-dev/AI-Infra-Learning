@@ -31,8 +31,8 @@ Files:
 
 What to notice:
 
-- **Peak memory is usually at the start of backward.** All activations are still alive, the logits' gradient (another `B·T·V` tensor) gets created, and grads start to appear.
-- **Between steps** only `params + adam state = 3P` stay alive in fp32. With `zero_grad(set_to_none=False)` the grads stay alive too, which makes it 4P.
+- **Peak memory is usually at the start of backward.** All activations are still alive, the logits' gradient (another $B \cdot T \cdot V$ tensor) gets created, and grads start to appear.
+- **Between steps** only $\text{params} + \text{Adam state} = 3P$ stay alive in fp32. With `zero_grad(set_to_none=False)` the grads stay alive too, which makes it 4P.
 - **Activations scale with batch × seq × layers, not with parameter count.** That is why ZeRO/FSDP (Days 6–8, which shard P, grads and Adam state) and activation checkpointing (Day 9, which cuts A) solve *different* problems.
 
 ### 1.2 What must be in a checkpoint to resume bit-exactly?
@@ -43,7 +43,7 @@ Before you read the code, write your own list, then compare it with this table:
 | --- | --- | --- |
 | Model params | yes | obviously |
 | Adam `exp_avg`, `exp_avg_sq` | **yes** | 2× the model's size. Without them the first update after resume is a different update |
-| Adam per-param `step` | **yes** | drives the bias correction `1 − β^t`. Reset it to 0 and the effective LR jumps |
+| Adam per-param `step` | **yes** | drives the bias correction $1 - \beta^t$. Reset it to 0 and the effective LR jumps |
 | LR scheduler counters | **yes** | otherwise warmup restarts, and the cosine phase is wrong |
 | Global step counter | yes | picks the next batch and the LR |
 | Data position / sampler state | yes in general | here the batch is a pure function of `(seed, step)`, so the step counter is enough |
@@ -92,13 +92,13 @@ Read it top to bottom once, then come back to the points below. For real practic
 **9. The timing loop.**
 - `torch.cuda.Event(enable_timing=True)` and `.record()` put a timestamp *into the GPU stream*, so the CPU doesn't block. One `synchronize()` at the end, then `elapsed_time()` on each pair.
 - `reset_peak_memory_stats()` runs at `start_step + timing_warmup`, so peak memory is the steady state.
-- Reported: first-step time (cold), median / mean / p90 (steady), tokens/s = `B·T·steps / Σ step time`.
+- Reported: first-step time (cold), median / mean / p90 (steady), tokens/s = $B \cdot T \cdot \text{steps} / \sum \text{step time}$.
 - Why not `time.time()` around `train_step`? Without a sync you only measure how fast Python *queues* kernels. With a sync every step you destroy the overlap you're trying to measure.
 
 **10. `memory_probe`.**
 - `mark()` = synchronize + `memory_allocated()` after every phase, and resets the peak, so the peak column means "peak inside this phase".
 - `saved_tensors_hooks(pack, unpack)` is the official hook autograd calls for every tensor it saves for backward. Summing unique non-parameter storages gives *activation memory held by the graph*. Same mechanism CPU activation offloading uses.
-- `del logits` frees `B·T·V·4` bytes, because `cross_entropy` saved `log_softmax`'s *output*, not the logits. Memory is freed when the last reference dies, whether that reference is yours or autograd's.
+- `del logits` frees $B \cdot T \cdot V \cdot 4$ bytes, because `cross_entropy` saved `log_softmax`'s *output*, not the logits. Memory is freed when the last reference dies, whether that reference is yours or autograd's.
 
 ---
 
@@ -205,7 +205,7 @@ python experiments/day01_single_gpu/check_resume.py --no-deterministic --atol 1e
 
 | Quantity | Formula | Medium preset |
 | --- | --- | --- |
-| Params N | `V·D + T·D + L(12D² + 13D) + 2D + D·V + V` | 27,443,200 |
+| Params N | $VD + TD + L(12D^2 + 13D) + 2D + DV + V$ | 27,443,200 |
 | P (params, fp32) | 4N bytes | ≈ 104.7 MiB |
 | Grads | P | ≈ 104.7 MiB |
 | Adam m + v | 2P | ≈ 209.4 MiB |
@@ -253,7 +253,7 @@ Prompts for each section:
 | Optimizer state | 2P (m, v) + CPU scalar `step` | lazily at the **first** `optimizer.step()` (`_init_group`) | never |
 | Activations | ∝ B·T·D·L (+ B·T·V for the logits/softmax) | during forward, as autograd saves tensors for backward | progressively during backward, as each node runs and drops its saved tensors. The whole graph is gone when `backward()` returns (`retain_graph=False`) |
 | Temporaries | transient | inside kernels and ops (`denom` in Adam, the logits' grad in backward) | as soon as the op finishes |
-| Outside PyTorch's count | — | CUDA context, cuBLAS workspace, allocator cache (`reserved − allocated`) | `empty_cache()` releases the cache only |
+| Outside PyTorch's count | — | CUDA context, cuBLAS workspace, allocator cache ($\text{reserved} - \text{allocated}$) | `empty_cache()` releases the cache only |
 
 Steady state between steps: **3P** (params + Adam). The peak is usually early in backward: **3P + activations + logit-grad + growing grads**. For a 7B model in fp32 that's 3 × 28 GB = 84 GB before any activations, which is why Days 6–9 exist.
 

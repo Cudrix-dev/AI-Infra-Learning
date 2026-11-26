@@ -97,17 +97,17 @@ This is the main block today. Write each prediction in notes §1 before you open
 
 ### §1 The hand-worked example: two stages, four microbatches
 
-**The model.** Four residual MLP blocks, `out = x + fc2(gelu(fc1(x)))`, d = 512, ffn = 2048, activations `[seq, batch, d]` as in Megatron and Day 11. **Stage 0 (rank 0, GPU 0) owns blocks 0–1; stage 1 (rank 1, GPU 1) owns blocks 2–3.** The effective batch is 8 sequences of 256 tokens. With M = 4 each microbatch is `[256, 2, 512]`.
+**The model.** Four residual MLP blocks, $\text{out} = x + \mathrm{fc2}(\operatorname{gelu}(\mathrm{fc1}(x)))$, d = 512, ffn = 2048, activations `[seq, batch, d]` as in Megatron and Day 11. **Stage 0 (rank 0, GPU 0) owns blocks 0–1; stage 1 (rank 1, GPU 1) owns blocks 2–3.** The effective batch is 8 sequences of 256 tokens. With M = 4 each microbatch is `[256, 2, 512]`.
 
 | | Stage 0 (rank 0) | Stage 1 (rank 1) |
 | --- | --- | --- |
 | Parameters | `blk0.*`, `blk1.*` (8 tensors) | `blk2.*`, `blk3.*` (8 tensors) |
-| Data it reads | the input microbatches `x_m` | the target microbatches `t_m` |
-| Computes | `a_m = blk1(blk0(x_m))` | `y_m = blk3(blk2(a_m))`, `L_m = Σ(y_m − t_m)² / N` |
-| Sends | activation `a_m` → stage 1 | gradient `g_m = ∂L/∂a_m` → stage 0 |
-| Receives | `g_m` | `a_m` |
+| Data it reads | the input microbatches $x_m$ | the target microbatches $t_m$ |
+| Computes | $a_m = \mathrm{blk1}(\mathrm{blk0}(x_m))$ | $y_m = \mathrm{blk3}(\mathrm{blk2}(a_m))$, $L_m = \sum (y_m - t_m)^2 / N$ |
+| Sends | activation $a_m$ → stage 1 | gradient $g_m = \partial L/\partial a_m$ → stage 0 |
+| Receives | $g_m$ | $a_m$ |
 
-Per microbatch exactly **two tensors cross the boundary**, both `[256, 2, 512]` FP32 = 1 MiB: `a_m` forward and `g_m` backward. Parameters, targets, the loss and the parameter gradients never cross (with DP = 1 nothing reduces them).
+Per microbatch exactly **two tensors cross the boundary**, both `[256, 2, 512]` FP32 = 1 MiB: $a_m$ forward and $g_m$ backward. Parameters, targets, the loss and the parameter gradients never cross (with DP = 1 nothing reduces them).
 
 **Timing assumptions** (the simulator's defaults; every number below depends on them): every stage takes t_F = 1 time unit for one microbatch's forward and t_B = 2 for its backward (dX and dW matmuls ≈ 2× forward), communication takes 0, and each stage runs its ops in a fixed order, starting an op as soon as the stage is free and its input has arrived.
 
@@ -121,13 +121,13 @@ stage 0 F0  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?
 stage 1  .  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?  ?
 ```
 
-**P3 (1F1B).** Megatron's non-interleaved 1F1B lets stage s run `min(P − s − 1, M)` forwards (warmup), then alternates one forward and one backward of the **oldest** microbatch in flight (steady state), then runs the remaining backwards (cooldown). Write each stage's op order, then fill the same grid. What does stage 0 do between t = 2 and t = 4?
+**P3 (1F1B).** Megatron's non-interleaved 1F1B lets stage s run $\min(P - s - 1, M)$ forwards (warmup), then alternates one forward and one backward of the **oldest** microbatch in flight (steady state), then runs the remaining backwards (cooldown). Write each stage's op order, then fill the same grid. What does stage 0 do between t = 2 and t = 4?
 
 **P4.** Count idle cells per stage in each grid, and the peak number of microbatches **in flight** on each stage (defined in §3.4: from the start of F(m) to the end of B(m) on that stage).
 
 <details><summary>Answers P1–P4</summary>
 
-**P1.** At t = 1. F0 on stage 1 needs `a_0`, which exists only after stage 0's F0 ends at t = 1. This start-up delay is the first part of the bubble.
+**P1.** At t = 1. F0 on stage 1 needs $a_0$, which exists only after stage 0's F0 ends at t = 1. This start-up delay is the first part of the bubble.
 
 **P2. GPipe.**
 
@@ -139,9 +139,9 @@ stage 1    . F0 F1 F2 F3 B0 B0 B1 B1 B2 B2 B3 B3  .  .
   in flight 0  1  2  3  4  4  4  3  3  2  2  1  1  0  0
 ```
 
-Stage 1 starts B0 at t = 5, right after its last forward. Stage 0 needs `g_0`, which arrives when stage 1's B0 ends at t = 7. Transfers: `a_0..a_3` at t = 1, 2, 3, 4; `g_0..g_3` at t = 7, 9, 11, 13.
+Stage 1 starts B0 at t = 5, right after its last forward. Stage 0 needs $g_0$, which arrives when stage 1's B0 ends at t = 7. Transfers: $a_0 \ldots a_3$ at t = 1, 2, 3, 4; $g_0 \ldots g_3$ at t = 7, 9, 11, 13.
 
-**P3. 1F1B.** Warmup: stage 0 runs `min(2 − 0 − 1, 4) = 1` forward, stage 1 runs 0. Orders: stage 0 `F0 F1 B0 F2 B1 F3 B2 B3`, stage 1 `F0 B0 F1 B1 F2 B2 F3 B3`.
+**P3. 1F1B.** Warmup: stage 0 runs $\min(2 - 0 - 1, 4) = 1$ forward, stage 1 runs 0. Orders: stage 0 `F0 F1 B0 F2 B1 F3 B2 B3`, stage 1 `F0 B0 F1 B1 F2 B2 F3 B3`.
 
 ```text
 t          0  1  2  3  4  5  6  7  8  9 10 11 12 13 14
@@ -151,7 +151,7 @@ stage 1    . F0 B0 B0 F1 B1 B1 F2 B2 B2 F3 B3 B3  .  .
   in flight 0  1  1  1  1  1  1  1  1  1  1  1  1  0  0
 ```
 
-Between t = 2 and t = 4 stage 0 has done its steady-state forward (F1) and **waits for `g_0`**: its next op is B0, and stage 1's B0 ends at t = 4. It may not run F2 instead: that would break the 1F1B order and add a third microbatch in flight. With Megatron's calls the exchanges are: `a_0` at t = 1; `a_1`+`g_0` at t = 4; `a_2`+`g_1` at t = 7; `a_3`+`g_2` at t = 10; `g_3` at t = 13 (§2.4 explains why `a_1` travels together with `g_0`).
+Between t = 2 and t = 4 stage 0 has done its steady-state forward (F1) and **waits for $g_0$**: its next op is B0, and stage 1's B0 ends at t = 4. It may not run F2 instead: that would break the 1F1B order and add a third microbatch in flight. With Megatron's calls the exchanges are: $a_0$ at t = 1; $a_1$+$g_0$ at t = 4; $a_2$+$g_1$ at t = 7; $a_3$+$g_2$ at t = 10; $g_3$ at t = 13 (§2.4 explains why $a_1$ travels together with $g_0$).
 
 **P4.** Both schedules: makespan 15, **3 idle cells per stage**, 6 of 30 stage-cells idle = 20 % bubble. GPipe idle sits at [4, 7) on stage 0 and at [0, 1) + [13, 15) on stage 1; 1F1B moves stage 0's idle to [2, 4) + [12, 13). **Peak in flight: GPipe 4 and 4; 1F1B 2 and 1.** Mean in flight over the step (area under the row / 15): GPipe 2.8 and 2.0, 1F1B 1.733 and 0.8.
 
@@ -162,14 +162,14 @@ Between t = 2 and t = 4 stage 0 has done its steady-state forward (F1) and **wai
 
 #### §2.1 Cutting the graph
 
-On one GPU, `loss.backward()` walks one graph from the loss back to `blk0`. With two processes the graph is cut at `a_m`:
+On one GPU, `loss.backward()` walks one graph from the loss back to `blk0`. With two processes the graph is cut at $a_m$:
 
 ```text
 rank 0:  x_m ──blk0──blk1──▶ a_m (non-leaf, has grad_fn)        ── data of a_m ──▶  rank 1:  r_m (leaf, requires_grad) ──blk2──blk3──▶ L_m
 rank 0:  torch.autograd.backward(a_m, grad_tensors=g_m)  ◀── g_m = r_m.grad ──   rank 1:  L_m.backward()
 ```
 
-The chain rule does not care where the cut is: `∂L/∂θ₀ = (∂a/∂θ₀)ᵀ · ∂L/∂a`. Stage 1 computes the vector `∂L/∂a` (it is `r_m.grad`) and sends it. Stage 0 calls `torch.autograd.backward(a_m, grad_tensors=g_m)`, which runs its part of the graph as a vector–Jacobian product with that vector. Only data crosses: `send` copies the numbers of `a_m`, never its `grad_fn`.
+The chain rule does not care where the cut is: $\partial L/\partial \theta_0 = (\partial a/\partial \theta_0)^\top \cdot \partial L/\partial a$. Stage 1 computes the vector $\partial L/\partial a$ (it is `r_m.grad`) and sends it. Stage 0 calls `torch.autograd.backward(a_m, grad_tensors=g_m)`, which runs its part of the graph as a vector–Jacobian product with that vector. Only data crosses: `send` copies the numbers of $a_m$, never its `grad_fn`.
 
 Run the scalar version (CPU, any machine with torch; pre-test output in Appendix A):
 
@@ -177,26 +177,26 @@ Run the scalar version (CPU, any machine with torch; pre-test output in Appendix
 python experiments/day12_pipeline_parallel/boundary_demo.py
 ```
 
-Stage 0 computes `h = w0·x` (w0 = 3), stage 1 computes `y = w1·h` (w1 = 2) and `L = Σ_m y_m²/2`, with `x_0 = 1`, `x_1 = 2`.
+Stage 0 computes $h = w_0 \cdot x$ (w0 = 3), stage 1 computes $y = w_1 \cdot h$ (w1 = 2) and $L = \sum_m y_m^2/2$, with $x_0 = 1$, $x_1 = 2$.
 
-**P5.** Work out by hand what crosses each way for both microbatches (`a_0, a_1, g_0, g_1`) and the final `w0.grad`, `w1.grad`. Then predict `w0.grad` for two mistakes: (a) stage 0 pairs `g_0` with microbatch 1's saved graph and `g_1` with microbatch 0's; (b) stage 1 forgets `requires_grad` on the received value.
+**P5.** Work out by hand what crosses each way for both microbatches ($a_0, a_1, g_0, g_1$) and the final `w0.grad`, `w1.grad`. Then predict `w0.grad` for two mistakes: (a) stage 0 pairs $g_0$ with microbatch 1's saved graph and $g_1$ with microbatch 0's; (b) stage 1 forgets `requires_grad` on the received value.
 
 <details><summary>Answer P5</summary>
 
-`a_0 = 3`, `a_1 = 6`; `g_m = ∂L/∂a_m = y_m · w1`: `g_0 = 6·2 = 12`, `g_1 = 12·2 = 24`. `w1.grad = y_0·a_0 + y_1·a_1 = 18 + 72 = 90`; `w0.grad = g_0·x_0 + g_1·x_1 = 12 + 48 = 60`. These equal the uncut graph.
+$a_0 = 3$, $a_1 = 6$; $g_m = \partial L/\partial a_m = y_m \cdot w_1$: $g_0 = 6 \cdot 2 = 12$, $g_1 = 12 \cdot 2 = 24$. $\texttt{w1.grad} = y_0 a_0 + y_1 a_1 = 18 + 72 = 90$; $\texttt{w0.grad} = g_0 x_0 + g_1 x_1 = 12 + 48 = 60$. These equal the uncut graph.
 
-(a) `12·x_1 + 24·x_0 = 48`. Same shapes, no error, wrong number: this is the silent bug the `lifo_backward` control plants in the real model. (b) `r.grad` is `None`: stage 1's own `w1.grad = 90` is right, and stage 0 has nothing to backpropagate. The demo prints `w0.grad = None`.
+(a) $12 \cdot x_1 + 24 \cdot x_0 = 48$. Same shapes, no error, wrong number: this is the silent bug the `lifo_backward` control plants in the real model. (b) `r.grad` is `None`: stage 1's own $\texttt{w1.grad} = 90$ is right, and stage 0 has nothing to backpropagate. The demo prints `w0.grad = None`.
 </details>
 
 #### §2.2 What each stage keeps for a microbatch in flight
 
 | Stage | Kept by the schedule per microbatch m | Why | Kept inside autograd (saved tensors) |
 | --- | --- | --- | --- |
-| 0 | `a_m`, its output | the root of `backward(a_m, grad_tensors=g_m)`; its `grad_fn` is the graph | each block's fc1 input, gelu input, fc2 input |
-| 1 | `r_m`, the received input (a leaf with `requires_grad=True`) | after backward, `r_m.grad` is the gradient to send back | the same per block, plus `y − t` for the loss |
-| 1 | `L_m`, the scalar loss | the root of `L_m.backward()` | — |
+| 0 | $a_m$, its output | the root of `backward(a_m, grad_tensors=g_m)`; its `grad_fn` is the graph | each block's fc1 input, gelu input, fc2 input |
+| 1 | $r_m$, the received input (a leaf with `requires_grad=True`) | after backward, `r_m.grad` is the gradient to send back | the same per block, plus $y - t$ for the loss |
+| 1 | $L_m$, the scalar loss | the root of `L_m.backward()` | — |
 
-Why `r_m` must be a leaf that requires grad: a freshly received buffer is a plain tensor. If it does not require grad, autograd never computes `∂L/∂r_m`. If it is not a leaf (for example `r_m * 1`), autograd does not keep its `.grad` unless you call `retain_grad()`. `received.requires_grad_()` makes it both. Megatron does the same in two places: the receive buffer is created with `requires_grad=True`, and `backward_step` still calls `retain_grad()` on its inputs, which handles a non-leaf input (Block 3 Stops 4–5).
+Why $r_m$ must be a leaf that requires grad: a freshly received buffer is a plain tensor. If it does not require grad, autograd never computes $\partial L/\partial r_m$. If it is not a leaf (for example `r_m * 1`), autograd does not keep its `.grad` unless you call `retain_grad()`. `received.requires_grad_()` makes it both. Megatron does the same in two places: the receive buffer is created with `requires_grad=True`, and `backward_step` still calls `retain_grad()` on its inputs, which handles a non-leaf input (Block 3 Stops 4–5).
 
 Rough sizes (derived from the code, FP32, microbatch of b sequences): stage 0 keeps about **9b MiB** per microbatch (two blocks × (fc1 input 0.5b + gelu input 2b + fc2 input 2b) minus the data input, which is already on the GPU, plus the stage output), stage 1 about **9.5b MiB**. The full batch (b = 8) is ≈ 72 MiB on stage 0. Appendix A checks these against the CUDA allocator.
 
@@ -210,14 +210,14 @@ Nothing on the wire says which microbatch a tensor belongs to. The match comes f
 
 The provided `P2P` helpers take an `mb` label that is **logged, not sent**. The checker's `labels` check compares the sender's label sequence with the receiver's. A schedule that pops the newest entry instead (`lifo_backward`) passes every shape check, and the labels, order and stage-0 gradients fail.
 
-**Loss weight.** Each microbatch's loss is its share of the full-batch mean, `Σ(y_m − t_m)² / N` with N the elements of the whole batch (`mb_loss`, Day 04's n_m / N rule). Summed over the M microbatches it is exactly the full-batch loss, so the gradients do not depend on M. Megatron divides each microbatch's loss by `num_microbatches` (Block 3 Stop 3). The `mean_per_microbatch` control uses each microbatch's own mean and scales every gradient by M.
+**Loss weight.** Each microbatch's loss is its share of the full-batch mean, $\sum (y_m - t_m)^2 / N$ with N the elements of the whole batch (`mb_loss`, Day 04's n_m / N rule). Summed over the M microbatches it is exactly the full-batch loss, so the gradients do not depend on M. Megatron divides each microbatch's loss by `num_microbatches` (Block 3 Stop 3). The `mean_per_microbatch` control uses each microbatch's own mean and scales every gradient by M.
 
 #### §2.4 The send/recv order and deadlock
 
 A blocking point-to-point call may wait until the peer posts the matching call (rendezvous). Look at 1F1B's steady state on two stages after stage 0 runs F1 and stage 1 runs B0:
 
-- stage 0 wants to **send `a_1`** and **receive `g_0`**;
-- stage 1 wants to **send `g_0`** and **receive `a_1`**.
+- stage 0 wants to **send $a_1$** and **receive $g_0$**;
+- stage 1 wants to **send $g_0$** and **receive $a_1$**.
 
 **P6.** If each rank posts its send first and its receive second, as separate blocking calls, what happens? Which two calls are the ranks stuck in? Why does GPipe never face this?
 
@@ -242,7 +242,7 @@ Two fixes:
 1. **Post both ops together** and wait for both: `send_forward_recv_backward` / `send_backward_recv_forward`, implemented with one `dist.batch_isend_irecv([...])`. Megatron's default (`batch_p2p_comm=True`). The provided `P2P` helpers do this, and the simulator's Megatron program shows the pairs as `send(a1)+recv(g0)` and `send(g0)+recv(a1)`.
 2. **Order by rank parity**: even ranks send then receive, odd ranks receive then send. Megatron's unbatched path `_p2p_ops` does this (Block 3 Stop 5).
 
-A pairing that looks odd at first: `a_1` is sent together with the receive of `g_0`, and stage 1 receives it together with sending `g_0`. In the two-stage grid that exchange completes at t = 4, when stage 1 finishes B0. Stage 1 does not need `a_1` before t = 4, so nothing is lost.
+A pairing that looks odd at first: $a_1$ is sent together with the receive of $g_0$, and stage 1 receives it together with sending $g_0$. In the two-stage grid that exchange completes at t = 4, when stage 1 finishes B0. Stage 1 does not need $a_1$ before t = 4, so nothing is lost.
 </details>
 
 ### §3 GPipe vs 1F1B on the same timeline
@@ -251,14 +251,14 @@ Same P = 2, M = 4, t_F = 1, t_B = 2, comm 0, as in §1.
 
 #### §3.1 GPipe: fill, all forwards, turn around, all backwards, drain
 
-Stage s cannot start before `s·t_F` (fill). After its last forward it waits until the gradients start arriving from the stages below it. Then it runs all backwards. The stages finish at different times, and the step ends when stage 0 finishes its last backward.
+Stage s cannot start before $s \cdot t_F$ (fill). After its last forward it waits until the gradients start arriving from the stages below it. Then it runs all backwards. The stages finish at different times, and the step ends when stage 0 finishes its last backward.
 
 #### §3.2 1F1B: warmup, steady state, cooldown
 
 | Phase | Stage s does | P = 2, M = 4: stage 0 | stage 1 |
 | --- | --- | --- | --- |
-| warmup | `w = min(P − s − 1, M)` forwards | F0 | — |
-| steady | `M − w` pairs: forward of the newest, backward of the oldest | F1 B0, F2 B1, F3 B2 | F0 B0, F1 B1, F2 B2, F3 B3 |
+| warmup | $w = \min(P - s - 1, M)$ forwards | F0 | — |
+| steady | $M - w$ pairs: forward of the newest, backward of the oldest | F1 B0, F2 B1, F3 B2 | F0 B0, F1 B1, F2 B2, F3 B3 |
 | cooldown | the `w` backwards still owed | B3 | — |
 
 The last stage has no warmup: it can backward a microbatch as soon as it has its loss. Each earlier stage runs one more warmup forward than the stage after it, which is exactly enough to keep the stages below it busy while the first gradient travels back.
@@ -269,7 +269,7 @@ With equal stages and free communication both schedules take
 
 **T = (M + P − 1)(t_F + t_B)**
 
-Each stage does M (t_F + t_B) of work, so each stage idles **(P − 1)(t_F + t_B)**, and the bubble fraction is **(P − 1) / (M + P − 1)**. For GPipe you can read the derivation off the grid. Stage s idles `s·t_F` before its first forward, `(P − 1 − s)(t_F + t_B)` between its last forward and its first backward, and `s·t_B` after its last backward while the stages above finish. The sum is `(P − 1)(t_F + t_B)` for every s. 1F1B only moves the idle cells around (§1 P4). The simulator asserts the formula for P = 2..4 and M = 1..8.
+Each stage does M (t_F + t_B) of work, so each stage idles **(P − 1)(t_F + t_B)**, and the bubble fraction is **(P − 1) / (M + P − 1)**. For GPipe you can read the derivation off the grid. Stage s idles $s \cdot t_F$ before its first forward, $(P - 1 - s)(t_F + t_B)$ between its last forward and its first backward, and $s \cdot t_B$ after its last backward while the stages above finish. The sum is $(P - 1)(t_F + t_B)$ for every s. 1F1B only moves the idle cells around (§1 P4). The simulator asserts the formula for P = 2..4 and M = 1..8.
 
 **How to count on a grid.** Count `.` cells per stage row up to the makespan, multiply by the tick, and divide the sum by P × makespan. For §1 that is 3 + 3 = 6 of 30, or 20 %.
 
@@ -282,7 +282,7 @@ Each stage does M (t_F + t_B) of work, so each stage idles **(P − 1)(t_F + t_B
 <details><summary>Answer P7</summary>
 
 - **GPipe: M on every stage.** All forwards run before any backward.
-- **1F1B: min(P − s, M).** Warmup leaves `w = min(P − s − 1, M)` in flight. The first steady forward adds one before the first backward removes one. After that each (F, B) pair keeps the count constant, and cooldown only lowers it. For P = 2 that is 2 on stage 0 and 1 on stage 1.
+- **1F1B: min(P − s, M).** Warmup leaves $w = \min(P - s - 1, M)$ in flight. The first steady forward adds one before the first backward removes one. After that each (F, B) pair keeps the count constant, and cooldown only lowers it. For P = 2 that is 2 on stage 0 and 1 on stage 1.
 - **The peak depends on the order alone, not on the times.** The count changes only at the stage's own ops, which run in a fixed order. Times change *how long* each microbatch stays resident (mean in flight, max residency), not the peak. §4 shows this with a slow stage.
 
 The checker reads the same count from your run. Each rank's `in flight after each op` line must reach the simulator's peak: `1 2 1 2 1 2 1 0` on rank 0 and `1 0 1 0 1 0 1 0` on rank 1 for 1F1B at M = 4.
@@ -315,7 +315,7 @@ Both schedules do the same work under the same dependencies, and with equal stag
 
 - **Bubble** falls as (P − 1)/(M + P − 1). The step time, in units of one stage's full-batch forward + backward, falls toward 1.
 - **GPipe's peak activation bytes stay at the whole batch's** (M microbatches × 1/M each). **1F1B's fall as min(P − s, M)/M.**
-- **Numerics.** The `n_m / N` weight preserves the mathematical loss and gradients for every M. In both measured runs the worst relative error against the full-batch baseline was `6.98e-7`. Against single-GPU accumulation at the same M, the output and all 16 gradients were bitwise equal. The reported scalar loss at M = 8 differed by `8.30e-8` relative due to the final FP32 summation.
+- **Numerics.** The $n_m / N$ weight preserves the mathematical loss and gradients for every M. In both measured runs the worst relative error against the full-batch baseline was `6.98e-7`. Against single-GPU accumulation at the same M, the output and all 16 gradients were bitwise equal. The reported scalar loss at M = 8 differed by `8.30e-8` relative due to the final FP32 summation.
 - **What the ideal model leaves out.** Smaller microbatches run the GPUs less efficiently, and this small model is already launch-bound. The number of P2P transfers grows to 2M per boundary per step, each 1/M the size. In practice that limits how far M can usefully go.
 </details>
 
@@ -411,7 +411,7 @@ torchrun --standalone --nproc_per_node=2 $D12/check_pp.py --impl ref --schedules
 
 <details><summary>Why does <code>lifo_backward</code> leave <code>blk1.fc2.bias</code> correct? (found in the pre-test)</summary>
 
-`blk1.fc2.bias` is the last bias on stage 0. Its gradient is the sum over all tokens of the gradient arriving at stage 0's output, `Σ_m g_m`, and it uses no saved activation. Pairing `g_m` with the wrong microbatch's graph permutes the terms of that sum without changing it. Every other stage-0 gradient multiplies `g_m` by something saved for one particular microbatch, so it fails. The assistant first predicted all 8, and the pre-test said 7. The expected set was corrected after that pre-test.
+`blk1.fc2.bias` is the last bias on stage 0. Its gradient is the sum over all tokens of the gradient arriving at stage 0's output, $\sum_m g_m$, and it uses no saved activation. Pairing $g_m$ with the wrong microbatch's graph permutes the terms of that sum without changing it. Every other stage-0 gradient multiplies $g_m$ by something saved for one particular microbatch, so it fails. The assistant first predicted all 8, and the pre-test said 7. The expected set was corrected after that pre-test.
 </details>
 
 ### Pitfalls (symptom → cause)
@@ -581,7 +581,7 @@ At that moment the neighbour does the mirror image. Two blocking sends posted fi
 
 <details><summary>5. You double M at a fixed effective batch. What happens to the bubble, to GPipe's and 1F1B's peak activation memory, and to the gradients?</summary>
 
-The bubble shrinks as (P − 1)/(M + P − 1). GPipe's activation bytes stay at about the whole batch. Under 1F1B each microbatch is half the size and the peak count stays fixed once the stage has reached its `P−s` cap, so the estimated live activation bytes then halve. The gradients are mathematically unchanged with the `n_m/N` weight. Both measured runs matched single-GPU accumulation bitwise in every parameter gradient at the same M.
+The bubble shrinks as (P − 1)/(M + P − 1). GPipe's activation bytes stay at about the whole batch. Under 1F1B each microbatch is half the size and the peak count stays fixed once the stage has reached its $P - s$ cap, so the estimated live activation bytes then halve. The gradients are mathematically unchanged with the $n_m / N$ weight. Both measured runs matched single-GPU accumulation bitwise in every parameter gradient at the same M.
 </details>
 
 **Next (Day 13):** the same 1F1B inside Megatron Core at `DP=1, TP=2, PP=2` on four GPUs, with Day 11's TP all-reduce inside each stage and today's P2P between stages.

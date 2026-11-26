@@ -241,7 +241,7 @@ The self-test compares against `dist.all_reduce`: **int64 must match exactly** (
 | `NOT IN SYNC` only from step ≥ 1 | Something rank-dependent *after* the sync (a per-rank random op or a per-rank scale applied to the already-synced gradient) |
 | Ranks stay in sync but parity check A fails by a modest amount | Different math rather than different ranks: clipping local gradients before the all_reduce, independent dropout masks, unequal valid-token counts per rank. None of these desynchronises ranks; they change what is being compared with the 1-GPU run |
 | Parity fails by ~`world`× in the gradient | Forgot to divide |
-| Parity fails by ~`1/world`× | Divided twice or by the wrong count |
+| Parity fails by ~$1/\text{world}$× | Divided twice or by the wrong count |
 | Ring result off in a few elements | Wrote into a chunk before its send completed, or a wrong chunk index |
 | Output from several ranks interleaves | Normal. Print from rank 0 or prefix with the rank |
 

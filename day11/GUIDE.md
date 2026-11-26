@@ -95,22 +95,22 @@ All in `experiments/day11_tensor_parallel/`:
 
 Write each prediction before you open the `<details>` block. The measured observations from the manual run are recorded in [notes §1](notes.md#1-predictions-and-checks).
 
-Shapes used in the real check (Day 01's medium MLP): activations `[seq 256, batch 2, d 512]` (Megatron's `[s, b, h]` order), `ffn = 2048`, TP size P = 2, so each rank holds `ffn / P = 1024` hidden units. FP32 with TF32 off.
+Shapes used in the real check (Day 01's medium MLP): activations `[seq 256, batch 2, d 512]` (Megatron's `[s, b, h]` order), $\text{ffn} = 2048$, TP size P = 2, so each rank holds $\text{ffn} / P = 1024$ hidden units. FP32 with TF32 off.
 
 ### 1.1 The tiny example: who owns what
 
-One block, `y = W2 · relu(W1 · x + b1) + b2`, with 2 tokens, d = 4, ffn = 4 (2 hidden units per rank). ReLU only keeps the numbers integers; GELU behaves the same way. Run it (CPU, any machine with torch):
+One block, $y = W_2 \cdot \operatorname{relu}(W_1 \cdot x + b_1) + b_2$, with 2 tokens, d = 4, ffn = 4 (2 hidden units per rank). ReLU only keeps the numbers integers; GELU behaves the same way. Run it (CPU, any machine with torch):
 
 ```bash
 python experiments/day11_tensor_parallel/tiny_example.py
 ```
 
-**PyTorch's layout first.** `nn.Linear(in, out).weight` is `[out_features, in_features]` and computes `y = x Wᵀ + b`. The names come from the textbook form `Y = X A` with `A = Wᵀ`, shape `[in, out]`:
+**PyTorch's layout first.** `nn.Linear(in, out).weight` is `[out_features, in_features]` and computes $y = x W^\top + b$. The names come from the textbook form $Y = XA$ with $A = W^\top$, shape `[in, out]`:
 
 | Name | Splits A's… | = splits PyTorch W's… | Each rank gets | Its output is |
 | --- | --- | --- | --- | --- |
-| column-parallel | columns (output features) | **rows, dim 0** | `W[r·out/P : (r+1)·out/P, :]` and the same slice of `b` | **sharded** along the last dim |
-| row-parallel | rows (input features) | **columns, dim 1** | `W[:, r·in/P : (r+1)·in/P]`; `b` **not** split | **partial sum**, full shape |
+| column-parallel | columns (output features) | **rows, dim 0** | $W[r \cdot \text{out}/P : (r+1) \cdot \text{out}/P,\ :]$ and the same slice of `b` | **sharded** along the last dim |
+| row-parallel | rows (input features) | **columns, dim 1** | $W[:,\ r \cdot \text{in}/P : (r+1) \cdot \text{in}/P]$; `b` **not** split | **partial sum**, full shape |
 
 So "column-parallel" cuts the PyTorch weight into *rows*. Megatron's code says the same thing as `partition_dim=0` for `ColumnParallelLinear` and `partition_dim=1` for `RowParallelLinear` (Block 3 Stop 2).
 
@@ -121,15 +121,15 @@ So "column-parallel" cuts the PyTorch weight into *rows*. Megatron's code says t
 Rank 1 holds hidden units 2–3: rows 2–3 of `W1` (`W1_r` is `[2, 4]`), entries 2–3 of `b1` (`[2]`), and columns 2–3 of `W2` (`W2_r` is `[4, 2]`). `b2` is the full `[4]` on both ranks. In the real check `W1_r` and `dW1_r` are `[1024, 512]`, `W2_r` and `dW2_r` are `[512, 1024]`, `db1_r` is `[1024]` and `db2` is `[512]` on both ranks. The parity log prints this as `LOCAL SHAPES PER RANK`.
 </details>
 
-**Storage first.** The left grid in each card is the matrix as written in maths, `A = Wᵀ` with shape `[in, out]`. The right grid holds the same numbers as PyTorch stores them, `W.weight` with shape `[out, in]`. Colour shows which rank holds each entry. `tiny_example.py` prints the PyTorch layout, the right-hand grids.
+**Storage first.** The left grid in each card is the matrix as written in maths, $A = W^\top$ with shape `[in, out]`. The right grid holds the same numbers as PyTorch stores them, `W.weight` with shape `[out, in]`. Colour shows which rank holds each entry. `tiny_example.py` prints the PyTorch layout, the right-hand grids.
 
 ![PyTorch storage vs the maths: A1 = W1ᵀ with columns 0–1 on rank 0 and 2–3 on rank 1, which are rows of W1.weight; A2 = W2ᵀ with rows split, which are columns of W2.weight; b1 split, b2 replicated](figures/d11_storage.svg)
 
-**Then the computation, in standard matrix form.** Rows of `x` are tokens. Every product is read the textbook way: `(row i of the left matrix) · (column j of the right matrix)` gives entry `[i, j]`. One entry per product is highlighted in violet and worked out underneath. Colour gives each tensor's state, and the two pink bands are the only collectives. Rank `r` owns hidden units `2r, 2r+1`; the values are from the pre-test log.
+**Then the computation, in standard matrix form.** Rows of `x` are tokens. Every product is read the textbook way: $(\text{row } i \text{ of the left matrix}) \cdot (\text{column } j \text{ of the right matrix})$ gives entry `[i, j]`. One entry per product is highlighted in violet and worked out underneath. Colour gives each tensor's state, and the two pink bands are the only collectives. Rank `r` owns hidden units `2r, 2r+1`; the values are from the pre-test log.
 
 ![Tiny example in standard matrix form: h_r = x·A1_r + b1_r, a_r = relu(h_r), z_r = a_r·A2_r, all-reduce (g), y = z + b2; backward dA2_r = a_rᵀ·G, db2, dh_r, dA1_r = xᵀ·dh_r, dx_r = dh_r·A1_rᵀ, all-reduce (f); one worked entry highlighted per product](figures/d11_tiny_example.svg)
 
-PyTorch keeps the weight gradients in its own layout: `W1_r.grad = dA1_rᵀ` and `W2_r.grad = dA2_rᵀ`. These are the `dW1_r` and `dW2_r` that the script and the parity log print.
+PyTorch keeps the weight gradients in its own layout: $\texttt{W1\_r.grad} = dA_{1,r}^\top$ and $\texttt{W2\_r.grad} = dA_{2,r}^\top$. These are the `dW1_r` and `dW2_r` that the script and the parity log print.
 
 The script ends with exact integer checks, including one that **must be False**: rank 0's `dx_r` alone is not the dense `dx`.
 
@@ -151,25 +151,25 @@ For each arrow, decide: replicated, sharded (along which dimension), or partial 
 
 - `x'` replicated (f's forward is the identity). `h_r` and `a_r` **sharded** along the last (ffn) dimension. `z_r` **partial sum**, full shape `[256, 2, 512]`. `z` and `y` replicated.
 - **Why the activation stays sharded.** GELU is elementwise: column j of `a` depends only on column j of `h`. The column-parallel layer produces exactly the ffn columns that the row-parallel layer's weight slice `W2[:, cols]` consumes. Rank r's `a_r` is the right input for rank r's `W2_r`, so nothing is exchanged between the two layers. This is why the pairing is *column then row*. An operation that mixes the ffn dimension (a LayerNorm over ffn, a softmax over ffn) would break it. A gated MLP (SwiGLU) works only if gate and up projections are sharded on the same units.
-- **P3.** Add the bias once after `g` using `y = z + b2`. Adding it inside each rank's matmul counts it P times, shifting `y` by `(P−1)·b2`. In the manual one-block `bias_before_reduce` control, `y` failed with `rel = 8.98e-2`. The MSE gradient `dy = 2(y − t)/N` depends on `y`, so every gradient comparison failed. The two ranks still agreed with each other.
+- **P3.** Add the bias once after `g` using $y = z + b_2$. Adding it inside each rank's matmul counts it P times, shifting `y` by $(P - 1) \cdot b_2$. In the manual one-block `bias_before_reduce` control, `y` failed with $\text{rel} = 8.98 \times 10^{-2}$. The MSE gradient $dy = 2(y - t)/N$ depends on `y`, so every gradient comparison failed. The two ranks still agreed with each other.
 - **P4.** One all-reduce (in `g`), `[256, 2, 512]` FP32 = 1 MiB. The counter printed `collectives forward (1): all_reduce[256, 2, 512]`.
 </details>
 
 ### 1.3 Backward, boundary by boundary
 
-Autograd walks the same arrows in reverse. The loss is computed on every rank from the same `y`, so `dL/dy` starts **replicated**.
+Autograd walks the same arrows in reverse. The loss is computed on every rank from the same `y`, so $dL/dy$ starts **replicated**.
 
 **P5.** What does `g`'s backward receive, and what must it return? Does it communicate?
 
 **P6.** Which of `dW2_r`, `db2`, `dW1_r`, `db1_r` need any communication to be correct?
 
-**P7.** What state is the gradient arriving at `f`'s backward in (`dx_r = dh_r · W1_r`), and what must `f` do?
+**P7.** What state is the gradient arriving at `f`'s backward in ($dx_r = dh_r \cdot W_{1,r}$), and what must `f` do?
 
 <details><summary>Answers P5–P7</summary>
 
-- **P5.** `dz`, replicated (= `dy`, since `y = z + b2`). The derivative of `Σ_r z_r` with respect to each `z_r` is 1, so each rank gets `dz_r = dz` unchanged. **No communication.** A forward all-reduce has an identity backward.
-- **P6.** None. `dW2_r = dyᵀ a_r` uses only local tensors and is exactly the r-th column block of the dense `dW2`. `db2 = Σ dy` is identical on every rank because `dy` is. `dh_r = (dy W2_r) ⊙ gelu'(h_r)` is the r-th column block of the dense `dh`, so `dW1_r` and `db1_r` are the r-th row blocks of the dense ones. **Weight gradients in TP need no reduction across the TP group**: each rank owns a different slice, and the slice's gradient depends only on local data.
-- **P7.** **Partial sum.** `x` reaches the loss through every hidden unit, and rank r only knows the paths through its own units. The true `dx = Σ_r dh_r W1_r`, so `f`'s backward is an **all-reduce SUM**. Its forward is the identity because `x` was already replicated. A forward copy has a sum as its backward. That is why one communication happens **only in backward**: replication costs nothing going forward, and its transpose is a sum.
+- **P5.** `dz`, replicated (= `dy`, since $y = z + b_2$). The derivative of $\sum_r z_r$ with respect to each `z_r` is 1, so each rank gets $dz_r = dz$ unchanged. **No communication.** A forward all-reduce has an identity backward.
+- **P6.** None. $dW_{2,r} = dy^\top a_r$ uses only local tensors and is exactly the r-th column block of the dense `dW2`. $db_2 = \sum dy$ is identical on every rank because `dy` is. $dh_r = (dy\, W_{2,r}) \odot \operatorname{gelu}'(h_r)$ is the r-th column block of the dense `dh`, so `dW1_r` and `db1_r` are the r-th row blocks of the dense ones. **Weight gradients in TP need no reduction across the TP group**: each rank owns a different slice, and the slice's gradient depends only on local data.
+- **P7.** **Partial sum.** `x` reaches the loss through every hidden unit, and rank r only knows the paths through its own units. The true $dx = \sum_r dh_r W_{1,r}$, so `f`'s backward is an **all-reduce SUM**. Its forward is the identity because `x` was already replicated. A forward copy has a sum as its backward. That is why one communication happens **only in backward**: replication costs nothing going forward, and its transpose is a sum.
 
 `f` and `g` are conjugates (each one's backward is the other's forward). The manual one-block run recorded `forward (1)` and `backward (1)`, each a SUM all-reduce on `[256, 2, 512]`.
 </details>
@@ -183,7 +183,7 @@ Four ways to get it wrong, each one a negative control in `tp_controls.py`:
 | `f` backward does nothing (`no_dx_allreduce`) | "forward was identity, so backward is too" | `dx` is rank r's partial; ranks disagree |
 | `g` backward also all-reduces (`g_bwd_allreduce`) | "all-reduce in both directions" | `dz` summed over P identical copies: everything upstream of `g` × P |
 | `f` backward averages (`avg_dx`) | the DDP habit (`ReduceOp.AVG`, or `/ world_size`) | `dx` × 1/P |
-| `b2` inside the partial sum (`bias_before_reduce`) | treating the row-parallel bias like the column-parallel one | forward `y` off by `(P−1)·b2` |
+| `b2` inside the partial sum (`bias_before_reduce`) | treating the row-parallel bias like the column-parallel one | forward `y` off by $(P - 1) \cdot b_2$ |
 
 The rule behind all of them: **every TP rank computes the same full loss on the same data and backpropagates 1.0**. There is no mean over ranks anywhere, and nothing divides by P. The sums in `f` add *different terms* of one derivative (unlike DDP, where ranks hold different samples of one estimate). Two more places in a real trainer where this matters (Block 3 Stop 6): parameters replicated across TP (`b2` here, LayerNorm weights in a transformer) get identical gradients on every rank and must **not** be all-reduced across TP. A global gradient norm must count them **once** while summing the squared norms of sharded parameters across ranks.
 
@@ -203,7 +203,7 @@ The rule behind all of them: **every TP rank computes the same full loss on the 
 
 <details><summary>Answer P10</summary>
 
-Not bitwise, in either precision. `y` sums 2048 products per element; TP computes two sums of 1024 and adds them, a different rounding order. Even the "local" weight gradients use matmuls of different shapes (`[1024, 512]` vs `[2048, 512]`), and cuBLAS may pick different kernels for them, so they are not guaranteed bitwise either. Pre-test FP32: every tensor within `rel ≤ 9.4e-7` (tolerance 1e-5), none bitwise, all ratios 1.0000. FP64: `rel ≤ 3.2e-15`, also not bitwise. The roughly 10⁹ shrink from FP32 to FP64 is what says the difference is rounding, not a missing term. The single-GPU baseline itself repeated bitwise, and a replay on rank 0 matched it bitwise. Which matmul kernels cuBLAS chose is **[not isolated]**.
+Not bitwise, in either precision. `y` sums 2048 products per element; TP computes two sums of 1024 and adds them, a different rounding order. Even the "local" weight gradients use matmuls of different shapes (`[1024, 512]` vs `[2048, 512]`), and cuBLAS may pick different kernels for them, so they are not guaranteed bitwise either. Pre-test FP32: every tensor within $\text{rel} \le 9.4 \times 10^{-7}$ (tolerance 1e-5), none bitwise, all ratios 1.0000. FP64: $\text{rel} \le 3.2 \times 10^{-15}$, also not bitwise. The roughly 10⁹ shrink from FP32 to FP64 is what says the difference is rounding, not a missing term. The single-GPU baseline itself repeated bitwise, and a replay on rank 0 matched it bitwise. Which matmul kernels cuBLAS chose is **[not isolated]**.
 </details>
 
 ### 1.6 Optional: what Day 13 adds on top (draw, do not build)
@@ -241,7 +241,7 @@ Four TODOs (2a–2d). Test with the unit tests (no baseline needed):
 torchrun --standalone --nproc_per_node=2 experiments/day11_tensor_parallel/check_tp_parity.py --impl mine --test unit
 ```
 
-Each rank puts the value `r + 1` in and sends the upstream gradient `10·(r + 1)`, so you can check every number by eye. Expected: `f` gives `x.grad = 30` on both ranks with `collectives fwd [] bwd ['all_reduce']`. `g` gives `y = 3` and `x.grad` = 10 on rank 0 and 20 on rank 1, with `fwd ['all_reduce'] bwd []`. The last line must be `UNIT TESTS: PASSED`. Without GPUs, the same test runs on CPU with `--device cpu` (gloo).
+Each rank puts the value $r + 1$ in and sends the upstream gradient $10 \cdot (r + 1)$, so you can check every number by eye. Expected: `f` gives `x.grad = 30` on both ranks with `collectives fwd [] bwd ['all_reduce']`. `g` gives $y = 3$ and `x.grad` = 10 on rank 0 and 20 on rank 1, with `fwd ['all_reduce'] bwd []`. The last line must be `UNIT TESTS: PASSED`. Without GPUs, the same test runs on CPU with `--device cpu` (gloo).
 
 ### Stage 3 (30 min): **YOU WRITE** the two `forward`s, then the parity check
 
@@ -414,12 +414,12 @@ Its input is already replicated, so forward needs nothing. Each rank's gradient 
 
 <details><summary>3. Could you put the activation function after the all-reduce instead and save memory?</summary>
 
-No. `gelu(Σ_r z_r) ≠ Σ_r gelu(z_r)`, and in any case the activation belongs between the two linears, where it is applied to `h`. `h` is sharded but complete per element, so the activation is exact there. The all-reduce has to come after the second linear, because only then are the per-rank values partial sums.
+No. $\operatorname{gelu}(\sum_r z_r) \ne \sum_r \operatorname{gelu}(z_r)$, and in any case the activation belongs between the two linears, where it is applied to `h`. `h` is sharded but complete per element, so the activation is exact there. The all-reduce has to come after the second linear, because only then are the per-rank values partial sums.
 </details>
 
 <details><summary>4. Per block and per direction, how many bytes does TP=2 all-reduce here, and how does that scale with ffn?</summary>
 
-`s·b·d·4` = 256·2·512·4 = 1 MiB per block per direction, independent of ffn. The ffn-sized activation is never communicated, and that is the design's main saving. It does scale with tokens, so TP communication grows with batch × sequence. Data-parallel gradient communication scales with parameter count instead.
+$s \cdot b \cdot d \cdot 4 = 256 \cdot 2 \cdot 512 \cdot 4$ = 1 MiB per block per direction, independent of ffn. The ffn-sized activation is never communicated, and that is the design's main saving. It does scale with tokens, so TP communication grows with batch × sequence. Data-parallel gradient communication scales with parameter count instead.
 </details>
 
 <details><summary>5. In DDP you average gradients over ranks. Why is averaging wrong in TP, and where would averaging be right in a DP × TP job?</summary>

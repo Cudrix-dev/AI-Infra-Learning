@@ -292,29 +292,32 @@ The tables below use three levels of aggregation: **rank → training step → e
 
 **1. Measure four boundaries on each rank in each step.** `time.perf_counter()` returns seconds. The GPU is synchronized before each boundary, so the intervals include CPU submission and waiting as well as GPU execution, rather than only kernel launch time.
 
-```text
-t0 → forward + loss + backward → t1
-t1 → flat-buffer creation + all-reduce + averaging + copy-back → t2
-t2 → optimizer.step + scheduler.step → t3
-
-fwd_bwd_ms = (t1 - t0) × 1000
-sync_ms    = (t2 - t1) × 1000
-optim_ms   = (t3 - t2) × 1000
-core_ms    = (t3 - t0) × 1000
-```
+$$
+\begin{aligned}
+t_0 &\xrightarrow{\ \text{forward + loss + backward}\ } t_1\\
+t_1 &\xrightarrow{\ \text{flat-buffer creation + all-reduce + averaging + copy-back}\ } t_2\\
+t_2 &\xrightarrow{\ \text{optimizer.step + scheduler.step}\ } t_3\\[6pt]
+\text{fwd\_bwd\_ms} &= (t_1 - t_0) \times 1000\\
+\text{sync\_ms} &= (t_2 - t_1) \times 1000\\
+\text{optim\_ms} &= (t_3 - t_2) \times 1000\\
+\text{core\_ms} &= (t_3 - t_0) \times 1000
+\end{aligned}
+$$
 
 Core is measured directly across the whole interval. It excludes batch generation/transfer, zero_grad, checks and logging. The wider loop includes these activities but is reported as a mean, so it must not be subtracted from the core median to estimate overhead. A single-rank run still has a tiny sync-function/timer overhead; the table displays a dash because there is no cross-rank gradient communication.
 
-**2. Within one run, take the slowest rank per step, then the median over steps.** Let `d[k,i,r,p]` be the measured milliseconds in repeat k, timed step i, rank r, for phase p (including p=core):
+**2. Within one run, take the slowest rank per step, then the median over steps.** Let $d[k,i,r,p]$ be the measured milliseconds in repeat k, timed step i, rank r, for phase p (including p=core):
 
-```text
-slowest_step[k,i,p] = max over ranks r of d[k,i,r,p]
-run_time[k,p]      = median over the 97 timed steps i of slowest_step[k,i,p]
-```
+$$
+\begin{aligned}
+\text{slowest\_step}[k,i,p] &= \max_{r} d[k,i,r,p]\\
+\text{run\_time}[k,p] &= \operatorname*{median}_{i \in \text{97 timed steps}} \text{slowest\_step}[k,i,p]
+\end{aligned}
+$$
 
 This models the slow-rank cost of synchronous training. The maximum is taken independently for each phase and for the whole core interval; their slowest ranks need not be the same. These are local interval durations, not globally aligned cross-rank timestamps.
 
-**3. Summarize three repeats.** Each time column is `median_k(run_time[k,p])`. For `core ms [min–max]`, the bracket contains the minimum and maximum of the **three run-level core medians**, not the fastest/slowest individual training steps and not a confidence interval.
+**3. Summarize three repeats.** Each time column is $\operatorname{median}_k(\text{run\_time}[k,p])$. For `core ms [min–max]`, the bracket contains the minimum and maximum of the **three run-level core medians**, not the fastest/slowest individual training steps and not a confidence interval.
 
 The actual two-GPU strong-scaling runs explain the displayed numbers:
 
@@ -328,38 +331,43 @@ Sorting the core medians gives 39.494605, 41.352207, 41.621006, hence **41.35 [3
 
 **4. Compute sync/core inside each repeat, before summarizing.**
 
-```text
-sync_share[k]    = run_time[k,sync] / run_time[k,core]
-displayed share = 100 × median_k(sync_share[k]) percent
-```
+$$
+\begin{aligned}
+\text{sync\_share}[k] &= \text{run\_time}[k,\text{sync}] / \text{run\_time}[k,\text{core}]\\
+\text{displayed share} &= 100 \times \operatorname{median}_k(\text{sync\_share}[k])\ \%
+\end{aligned}
+$$
 
-Here `median(11.0446%, 11.2341%, 15.9879%) = 11.2341%`, displayed as **11.2%**. Dividing the displayed 4.60 by 41.35 instead gives about 11.1%; those two independently summarized, rounded columns are not the values used to compute the final share. This share is a ratio of run-level medians, not the mean of per-step percentages.
+Here $\operatorname{median}(11.0446\%,\ 11.2341\%,\ 15.9879\%) = 11.2341\%$, displayed as **11.2%**. Dividing the displayed 4.60 by 41.35 instead gives about 11.1%; those two independently summarized, rounded columns are not the values used to compute the final share. This share is a ratio of run-level medians, not the mean of per-step percentages.
 
 **5. Compute core tokens/s from global work, not local work.** Medium sequence length is 256. In this synthetic workload every token is valid:
 
-```text
-tokens_per_step[k] = global_batch[k] × sequence_length
-throughput[k]      = tokens_per_step[k] / (run_time[k,core] / 1000)
-displayed tokens/s = median_k(throughput[k])
-```
+$$
+\begin{aligned}
+\text{tokens\_per\_step}[k] &= \text{global\_batch}[k] \times \text{sequence\_length}\\
+\text{throughput}[k] &= \text{tokens\_per\_step}[k] / (\text{run\_time}[k,\text{core}] / 1000)\\
+\text{displayed tokens/s} &= \operatorname{median}_k(\text{throughput}[k])
+\end{aligned}
+$$
 
-For strong scaling both one and two GPUs process **16 × 256 = 4096 global tokens per step**. The two-GPU median-core run gives `4096 / (41.352207 / 1000) ≈ 99,052 tokens/s`; the single-GPU median-core run gives `4096 / (57.621981 / 1000) ≈ 71,084 tokens/s`. Do not multiply by two again: the global batch already includes both ranks. For weak scaling, the two-GPU global batch grows to 32, so its numerator is **8192**, not 4096.
+For strong scaling both one and two GPUs process **16 × 256 = 4096 global tokens per step**. The two-GPU median-core run gives $4096 / (41.352207 / 1000) \approx 99{,}052\ \text{tokens/s}$; the single-GPU median-core run gives $4096 / (57.621981 / 1000) \approx 71{,}084\ \text{tokens/s}$. Do not multiply by two again: the global batch already includes both ranks. For weak scaling, the two-GPU global batch grows to 32, so its numerator is **8192**, not 4096.
 
-The column is training **tokens per second**, not milliseconds per token and not autoregressive generation throughput. If a time-per-token statistic is wanted, `ms/token = run_core_ms / tokens_per_step = 1000 / throughput`.
+The column is training **tokens per second**, not milliseconds per token and not autoregressive generation throughput. If a time-per-token statistic is wanted, $\text{ms/token} = \text{run\_core\_ms} / \text{tokens\_per\_step} = 1000 / \text{throughput}$.
 
-**6. Compute speedup and efficiency against the baseline of the same repeat.** Let N be the number of GPUs, `Q[N,k]` the global core throughput and `T[N,k]` the run core time:
+**6. Compute speedup and efficiency against the baseline of the same repeat.** Let N be the number of GPUs, $Q[N,k]$ the global core throughput and $T[N,k]$ the run core time:
 
-```text
-speedup[N,k]    = Q[N,k] / Q[1,k]
-efficiency[N,k] = speedup[N,k] / N
-
-Strong, fixed global batch: speedup[N,k] = T[1,k] / T[N,k]
-Weak, fixed local batch:    speedup[N,k] = N × T[1,k] / T[N,k]
-```
+$$
+\begin{aligned}
+\text{speedup}[N,k] &= Q[N,k] / Q[1,k]\\
+\text{efficiency}[N,k] &= \text{speedup}[N,k] / N\\[6pt]
+\text{Strong, fixed global batch:}\quad \text{speedup}[N,k] &= T[1,k] / T[N,k]\\
+\text{Weak, fixed local batch:}\quad \text{speedup}[N,k] &= N \times T[1,k] / T[N,k]
+\end{aligned}
+$$
 
 These efficiency formulas assume the first configuration is one GPU, as it is here. The table displays each ratio's median and min–max over repeats; efficiency is converted to percent. The strong two-GPU result is **1.40× speedup, 70.2% efficiency**. Do not divide the displayed core medians and expect to reproduce the exact median of the paired ratios.
 
-**Why phase columns do not add up:** on the same rank in the same step, fwd_bwd + sync + optim equals core before rounding. But independent rank maxima, step medians and repeat medians do not preserve addition. For example, rank 0 phase times `[8,2,2]` and rank 1 `[2,8,2]` both have core=12, while the phase maxima sum to `8+8+2=18`. Therefore **28.18 + 4.60 + 10.76 = 43.54 ms** is not how the measured **41.35 ms core** was calculated.
+**Why phase columns do not add up:** on the same rank in the same step, fwd_bwd + sync + optim equals core before rounding. But independent rank maxima, step medians and repeat medians do not preserve addition. For example, rank 0 phase times `[8,2,2]` and rank 1 `[2,8,2]` both have core=12, while the phase maxima sum to $8+8+2=18$. Therefore **28.18 + 4.60 + 10.76 = 43.54 ms** is not how the measured **41.35 ms core** was calculated.
 
 Implementation references: `ddp_manual.py` training boundaries and `summarize_timing`; `run_scaling.py` per-repeat baselines and summary printing. The measured table values below are unchanged.
 

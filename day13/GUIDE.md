@@ -31,7 +31,7 @@ These five rows cover the README brief's four primary deliverables: run configur
 
 ## What is new today (and what you already have)
 
-You already have Day 11's column → row parallel MLP (`f` = identity forward / all-reduce backward, `g` = all-reduce forward / identity backward), and Day 12's two-stage 1F1B (`send_forward_recv_backward`, FIFO pop, warmup `P − s − 1`). Both ran on two GPUs, each alone.
+You already have Day 11's column → row parallel MLP (`f` = identity forward / all-reduce backward, `g` = all-reduce forward / identity backward), and Day 12's two-stage 1F1B (`send_forward_recv_backward`, FIFO pop, warmup $P - s - 1$). Both ran on two GPUs, each alone.
 
 New today:
 
@@ -46,7 +46,7 @@ New today:
 
 The manual host was Vast.ai container 61775446 with 4 × A100-SXM4-80GB and driver 595.91.07. All six GPU pairs reported NV12. GPU 0–1 had CPU affinity 0–63 (NUMA 0), and GPU 2–3 had affinity 64–127 (NUMA 1). The runner chose pair 0,1 and four-GPU order 0,1,2,3. [Manual topology](../outputs/day13_downloads/manual_20261121T082746Z_mine/session_manual_20261121T082746Z_mine/topology.log)
 
-The pre-test host was Vast.ai container 60863550 with 4 × A100-SXM4-80GB. Every pair was **NV12**, all four GPUs were on NUMA node 1, the driver was 580.178.04, with torch 2.14.1+cu130, NCCL 2.30.7 and Python 3.12.15. It cost about $5.42/h and was used for about 38 minutes. A rental with the same template image works the same way. Your rental may have a different topology, which is why Stage 0 checks it first.
+The pre-test host was Vast.ai container 60863550 with 4 × A100-SXM4-80GB. Every pair was **NV12**, all four GPUs were on NUMA node 1, the driver was 580.178.04, with torch 2.14.1+cu130, NCCL 2.30.7 and Python 3.12.15. It cost about \$5.42/h and was used for about 38 minutes. A rental with the same template image works the same way. Your rental may have a different topology, which is why Stage 0 checks it first.
 
 From your Windows project root, after the instance is up (`<host>`, `<port>` from the Vast console):
 
@@ -107,9 +107,9 @@ Write each prediction in notes §1 before you open the `<details>`.
 
 Megatron gives every rank a coordinate for each kind of parallelism and numbers the ranks so that the **leftmost** kind in the order string changes fastest. The default order is `tp-cp-ep-dp-pp` (`initialize_model_parallel`'s `order` argument, `parallel_state.py:617`). Today CP (context parallel) and EP (expert parallel) are 1, so only TP, DP and PP matter. A global rank is a mixed-radix number whose lowest digit is the TP rank:
 
-```text
-rank = tp_rank + TP · (dp_rank + DP · pp_rank)
-```
+$$
+\text{rank} = \text{tp\_rank} + \text{TP} \cdot (\text{dp\_rank} + \text{DP} \cdot \text{pp\_rank})
+$$
 
 It is the same rule as a 3-D array laid out in memory with TP as the contiguous axis. `generate_masked_orthogonal_rank_groups` (`parallel_state.py:269`) states it in its docstring, then solves the reverse problem: list the ranks that share some coordinates and vary the others.
 
@@ -117,11 +117,13 @@ It is the same rule as a 3-D array laid out in memory with TP as the contiguous 
 
 <details><summary>Answer P1</summary>
 
-```text
-DP=1 TP=2 PP=2:   rank 0 (0,0,0)   rank 1 (1,0,0)   rank 2 (0,0,1)   rank 3 (1,0,1)
-TP=2 DP=2 PP=2:   rank r -> (r % 2, (r // 2) % 2, r // 4)
-                  stage 1 = ranks 4,5,6,7;  TP rank 1 = ranks 1,3,5,7
-```
+$$
+\begin{aligned}
+\text{DP}=1,\ \text{TP}=2,\ \text{PP}=2:&\quad \text{rank } 0 \mapsto (0,0,0),\ \ \text{rank } 1 \mapsto (1,0,0),\ \ \text{rank } 2 \mapsto (0,0,1),\ \ \text{rank } 3 \mapsto (1,0,1)\\
+\text{TP}=2,\ \text{DP}=2,\ \text{PP}=2:&\quad \text{rank } r \mapsto \big(r \bmod 2,\ \lfloor r/2 \rfloor \bmod 2,\ \lfloor r/4 \rfloor\big)\\
+&\quad \text{stage 1} = \text{ranks } 4,5,6,7;\quad \text{TP rank 1} = \text{ranks } 1,3,5,7
+\end{aligned}
+$$
 
 `rank_mapper.py --layouts all` prints these and four more layouts. In the pre-test they matched Megatron's `RankGenerator` (`mapper.log`).
 </details>
@@ -159,7 +161,7 @@ Activations travel from stage 0 to stage 1 between ranks with the **same TP rank
 
 #### §1.4 The embedding group, and what untied embeddings change
 
-GPT's input embedding (`vocab × h`, stage 0) and output layer (`vocab × h`, last stage) can share one weight ("tied"). When the two stages are different ranks, each holds a copy, and the copies must stay equal. That is why the embedding group pairs the **first and last** rank of each PP group: `[0, 2]` and `[1, 3]`, one per TP shard. With vocab-parallel layers, rank 0's rows 0–4095 must match rank 2's rows 0–4095.
+GPT's input embedding ($\text{vocab} \times h$, stage 0) and output layer ($\text{vocab} \times h$, last stage) can share one weight ("tied"). When the two stages are different ranks, each holds a copy, and the copies must stay equal. That is why the embedding group pairs the **first and last** rank of each PP group: `[0, 2]` and `[1, 3]`, one per TP shard. With vocab-parallel layers, rank 0's rows 0–4095 must match rank 2's rows 0–4095.
 
 **P4.** Today's embeddings are **untied** (`share_embeddings_and_output_weights=False`). (a) Does the embedding group still exist? (b) Which collectives over `[0, 2]` run (i) at initialization and (ii) per step, tied vs untied? (c) What else changes?
 
@@ -167,7 +169,7 @@ GPT's input embedding (`vocab × h`, stage 0) and output layer (`vocab × h`, la
 
 (a) Yes. `initialize_model_parallel` always builds it from the PP groups (`:1269`), and the pre-test printed `embedding [0, 2]` on ranks 0 and 2. The group exists. Whether anything uses it depends on the model.
 
-(b) **Tied:** (i) at init the last stage zero-fills its output weight, and an all-reduce over the embedding group copies stage 0's values into it (`setup_embeddings_and_output_layer`, `language_module.py:202`, all-reduce at `:308`). (ii) Every step, `finalize_model_grads` (`distributed/finalize_model_grads.py:563`) calls `_allreduce_word_embedding_grads` (`:164`, call at `:659`). The call sums the two copies' gradients, `vocab/TP × h` = 4096 × 512 FP32 = 8 MiB per rank here. **Untied:** neither runs. `_get_shared_word_embedding_weight` returns `None` when the weights are not shared (`:146`), so the embedding all-reduce has nothing to reduce. The pre-test trace has **no** collective over `[0, 2]` except the PP send/recv.
+(b) **Tied:** (i) at init the last stage zero-fills its output weight, and an all-reduce over the embedding group copies stage 0's values into it (`setup_embeddings_and_output_layer`, `language_module.py:202`, all-reduce at `:308`). (ii) Every step, `finalize_model_grads` (`distributed/finalize_model_grads.py:563`) calls `_allreduce_word_embedding_grads` (`:164`, call at `:659`). The call sums the two copies' gradients, $\text{vocab}/\text{TP} \times h$ = 4096 × 512 FP32 = 8 MiB per rank here. **Untied:** neither runs. `_get_shared_word_embedding_weight` returns `None` when the weights are not shared (`:146`), so the embedding all-reduce has nothing to reduce. The pre-test trace has **no** collective over `[0, 2]` except the PP send/recv.
 
 (c) Untied embeddings add parameters: the last stage holds its own `output_layer.weight` (4096 × 512 per TP rank). Each of them gets its own optimizer state. Our script never calls `finalize_model_grads` at all (DP = 1, untied, no DDP wrapper). A production run calls it every step, and it is a no-op for the embedding here. *Optional experiment:* set `share_embeddings_and_output_weights=True` in `train_gpt.py`, call `finalize_model_grads` after the schedule, and look for the 8 MiB all-reduce over `[0, 2]` in the trace (not pre-tested).
 </details>
@@ -203,13 +205,13 @@ Every rank calls `forward_step_func` 8 times and `backward_step` 8 times (`rank<
 
 #### §2.2 Loss scaling by the number of microbatches
 
-Your `loss_func` returns the mean cross-entropy over the microbatch's 512 tokens. Megatron then divides it by `num_microbatches` before backpropagating (`forward_step_calc_loss`, `output_tensor /= num_microbatches`, `schedules.py:335`). Summed over 8 microbatches, that is the mean over all 4096 tokens: Day 04's `n_m/N` weight, Day 12's `mb_loss`. With the 3-tuple form `(loss_sum, num_tokens, log)`, Megatron divides by the token count instead (`:321–327`, path not used today).
+Your `loss_func` returns the mean cross-entropy over the microbatch's 512 tokens. Megatron then divides it by `num_microbatches` before backpropagating (`forward_step_calc_loss`, `output_tensor /= num_microbatches`, `schedules.py:335`). Summed over 8 microbatches, that is the mean over all 4096 tokens: Day 04's $n_m / N$ weight, Day 12's `mb_loss`. With the 3-tuple form `(loss_sum, num_tokens, log)`, Megatron divides by the token count instead (`:321–327`, path not used today).
 
 **P6.** (a) What scalar does `torch.autograd.backward` start from on rank 2 for microbatch k? (b) You return `(loss, {"lm loss": loss.detach()})`. Step 0's true mean loss is 9.124. What does your log show, and why?
 
 <details><summary>Answer P6</summary>
 
-(a) `mean_k / 8`: the microbatch's token mean divided by 8 (on both TP ranks of stage 1. Vocab-parallel cross-entropy gives both TP ranks the same per-token loss).
+(a) $\text{mean}_k / 8$: the microbatch's token mean divided by 8 (on both TP ranks of stage 1. Vocab-parallel cross-entropy gives both TP ranks the same per-token loss).
 
 (b) **1.1405**, which is 9.124 / 8. `detach()` returns a tensor that **shares storage** with `loss`, and Megatron's `/=` is **in place**, so your logged value is divided too. This happened in the assistant's first development run (`1.1405004`, see Appendix A.4). `clone()` fixes it (`ref_loss_func`). The gradients were right all along. Only the log was wrong.
 </details>
@@ -220,7 +222,7 @@ Your `loss_func` returns the mean cross-entropy over the microbatch's 512 tokens
 | --- | --- | --- |
 | Day 11 `ColumnParallelLinear` (`f` = all-reduce of `dx` in backward) | `linear_qkv` and `linear_fc1` of every layer, and `output_layer` | `tensor_parallel/layers.py:869`, all-reduce `:639` (async), wait `:750` |
 | Day 11 `RowParallelLinear` (`g` = all-reduce in forward) | `linear_proj` and `linear_fc2` of every layer | `layers.py:1249`, `reduce_from_tensor_model_parallel_region` `:1480` → `mappings.py:35` |
-| (not in Day 11) vocab-parallel embedding / cross-entropy | first-stage embedding, last-stage loss | `layers.py:230` (all-reduce `:377`), `cross_entropy.py:119` (3 all-reduces of `b × s` values) |
+| (not in Day 11) vocab-parallel embedding / cross-entropy | first-stage embedding, last-stage loss | `layers.py:230` (all-reduce `:377`), `cross_entropy.py:119` (3 all-reduces of $b \times s$ values) |
 | Day 12 `run_1f1b` | `forward_backward_pipelining_without_interleaving` | `pipeline_parallel/schedules.py:2120` |
 | Day 12 `P2P.send_forward_recv_backward` | `P2PCommunicator.send_forward_recv_backward` → `_communicate` → `batch_isend_irecv` | `p2p_communication.py:527`, `:275`, `:49` |
 | Day 12 `received.requires_grad_()` + `forward_step` | `set_input_tensor` (the received activation replaces the embedding output on stage 1) | `schedules.py:501` → `transformer_block.py:443` |
@@ -244,11 +246,11 @@ Each transformer layer is two Day 11 blocks: attention (`linear_qkv` column → 
 | `tp2pp2` stage 1 (ranks 2, 3) | 8 × 2·3 = **48** | 8 × 3 = **24** | 8 × (2·3 + 1 output layer) = **56** | **9** |
 | `tp2pp1` (ranks 0, 1) | 8 × (2·6 + 1) = **104** | **24** | 8 × (2·6 + 1) = **104** | 0 |
 
-Each stage of a two-stage 1F1B launches `1 + (M − 1) + 1 = 9` P2P kernels. Stage 0 has `send_forward` (warmup), 7 × `send_forward_recv_backward` and `recv_backward` (cooldown). Stage 1 has `recv_forward`, 7 × `send_backward_recv_forward` and `send_backward`. A batched send+recv is **one** `ncclDevKernel_SendRecv`. The pre-test and both manual runs reproduced these counts for their SP-off layouts. [Manual mine counts](../outputs/day13_downloads/manual_20261121T082746Z_mine/session_manual_20261121T082746Z_mine/compare.log)
+Each stage of a two-stage 1F1B launches $1 + (M - 1) + 1 = 9$ P2P kernels. Stage 0 has `send_forward` (warmup), 7 × `send_forward_recv_backward` and `recv_backward` (cooldown). Stage 1 has `recv_forward`, 7 × `send_backward_recv_forward` and `send_backward`. A batched send+recv is **one** `ncclDevKernel_SendRecv`. The pre-test and both manual runs reproduced these counts for their SP-off layouts. [Manual mine counts](../outputs/day13_downloads/manual_20261121T082746Z_mine/session_manual_20261121T082746Z_mine/compare.log)
 
 Splitting into stages **divides** the per-rank all-reduce count (232 → 104 / 128), because each rank holds half the layers. It does not change the total for the model. TP inside a stage costs the same per layer as in Day 11.
 
-**Check your Day 11 prediction** (Day 11 notes §7): it said 2 + 2 per layer per microbatch on every stage, `[s, b, h]`, forward from `layers.py:1480` and backward from `layers.py:637–639`, waiting at `:749–750`. All confirmed. One correction for today: the size is **FP32**, `s·b·h·4 B` = 1 MiB, not BF16. Your note left out the embedding, the output layer and cross-entropy.
+**Check your Day 11 prediction** (Day 11 notes §7): it said 2 + 2 per layer per microbatch on every stage, `[s, b, h]`, forward from `layers.py:1480` and backward from `layers.py:637–639`, waiting at `:749–750`. All confirmed. One correction for today: the size is **FP32**, $s \cdot b \cdot h \cdot 4\ \text{B}$ = 1 MiB, not BF16. Your note left out the embedding, the output layer and cross-entropy.
 </details>
 
 ### §4 Sequence parallelism: off for the main run, on as a comparison
@@ -290,7 +292,7 @@ Two more consequences, both shown in the figures for P8:
 
 **P8.** Use the two facts of §4.1 and the forward figure of §4.2.
 
-- (a) **Backward of one block with SP on:** which collectives run, in what order, and with which shapes? *Hint:* apply the mirror rule to the two forward bars. Then ask what fc1's weight gradient `dA1_r = xᵀ · dh_r` needs, given that only the `[128, 2, 512]` shard of `x` was saved.
+- (a) **Backward of one block with SP on:** which collectives run, in what order, and with which shapes? *Hint:* apply the mirror rule to the two forward bars. Then ask what fc1's weight gradient $dA_{1,r} = x^\top \cdot dh_r$ needs, given that only the `[128, 2, 512]` shard of `x` was saved.
 - (b) **Per rank per step** at `TP=2, PP=2`, M = 8: count each collective in forward and backward on stage 0 and on stage 1. Remember the embedding on stage 0, and the final LayerNorm, output layer and cross-entropy on stage 1. Also give the P2P shape. Does the loss change?
 
 <details><summary>Answer P8 (pre-test, rank 0 = stage 0 and rank 2 = stage 1; <code>analyze_tp2pp2_sp.log</code>, <code>compare.log</code>)</summary>
@@ -419,7 +421,7 @@ This is Day 12's 1F1B at P = 2, M = 8. Both TP ranks of a stage run the same ord
 
 #### §6.4 Idle time: what the trace shows, and what it cannot
 
-**Idealized [derived].** With t_F = 1, t_B = 2 and free communication, 1F1B at P = 2, M = 8 takes `(M + P − 1)(t_F + t_B) = 27` units. Each stage idles 3, a bubble of `(P − 1)/(M + P − 1) = 11.1 %`. Stage 1 idles before F0 (fill) and after B7. Stage 0 idles while the first gradient makes its round trip and before its last backward (drain).
+**Idealized [derived].** With t_F = 1, t_B = 2 and free communication, 1F1B at P = 2, M = 8 takes $(M + P - 1)(t_F + t_B) = 27$ units. Each stage idles 3, a bubble of $(P - 1)/(M + P - 1) = 11.1\%$. Stage 1 idles before F0 (fill) and after B7. Stage 0 idles while the first gradient makes its round trip and before its last backward (drain).
 
 **Measured, stack step, `tp2pp2` [pre-test, profiled].** The same pattern appears, at profiler-inflated scale:
 
@@ -552,7 +554,7 @@ Paths are relative to `megatron/core/`.
 
 Day 12 Block 3 covered it. Today, check the pieces that differ:
 
-- `get_tensor_shapes` `schedules.py:2088`: `(seq, micro_batch, hidden)`, `÷ TP` with SP `:2114`.
+- `get_tensor_shapes` `schedules.py:2088`: `(seq, micro_batch, hidden)`, $\div\ \text{TP}$ with SP `:2114`.
 - `forward_backward_pipelining_without_interleaving` `:2120`: `P2PCommunicator(pp_group=get_pipeline_model_parallel_group())`. Its neighbours are **global** ranks from the PP group, so rank 0's `next_rank` is 2. Warmup `:2243`, steady `send_forward_recv_backward` `:2382`, `send_backward_recv_forward` `:2412`.
 - `forward_step_calc_loss` `:290`, `/= num_microbatches` `:335`.
 - `p2p_communication.py`: `P2PCommunicator` `:140`, `_communicate` `:275`, `_batched_p2p_ops` `:17` → `batch_isend_irecv` `:49`.
@@ -645,7 +647,7 @@ On the compute stream: the forward all-reduces (synchronous, `g`, launched by th
 
 <details><summary>5. Untied → tied embeddings at DP=1 TP=2 PP=2: which collectives appear, over which ranks, how large?</summary>
 
-At init, one all-reduce over `[0, 2]` and one over `[1, 3]` copies stage 0's word embedding into the last stage's output weight. Each step, `finalize_model_grads` all-reduces the word-embedding gradient over the same groups: `4096 × 512` FP32 = 8 MiB per rank. The groups themselves exist in both cases.
+At init, one all-reduce over `[0, 2]` and one over `[1, 3]` copies stage 0's word embedding into the last stage's output weight. Each step, `finalize_model_grads` all-reduces the word-embedding gradient over the same groups: $4096 \times 512$ FP32 = 8 MiB per rank. The groups themselves exist in both cases.
 </details>
 
 <details><summary>6. TP=2 PP=2 took 141–158 ms per step and one GPU took 159–171 ms. Is Megatron's parallelism broken?</summary>

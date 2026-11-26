@@ -227,7 +227,7 @@ Copy `mini_ddp.py` to a scratch name, delete the bodies under the `YOU WRITE` ma
 1. **`assign_buckets(sizes_bytes, order, caps_bytes)`**: walk `order`, add each parameter to the current bucket, **close the bucket as soon as its size ≥ its cap** (DDP's rule in `compute_bucket_assignment_by_size`). `caps_bytes[k]` is bucket k's cap; the last one repeats. Cap 0 must give one parameter per bucket.
 2. **`_build(order)`**: one `_Bucket` per group: a flat `torch.zeros` buffer plus one view per parameter (`flat[off:off+n].view_as(p)`), and `locate[i] = (bucket, slot)`.
 3. **`forward`**: reset `pending`, `ready`, `work` of every bucket and `_next_bucket = 0`, then call the module.
-4. **`_on_grad_ready(i, p)`**: copy `p.grad × 1/world` into the slot **in one kernel** (`torch.mul(..., out=view)`), decrement `pending`, mark the bucket ready at 0, then `_launch_in_order()`.
+4. **`_on_grad_ready(i, p)`**: copy $\texttt{p.grad} \times 1/\text{world}$ into the slot **in one kernel** (`torch.mul(..., out=view)`), decrement `pending`, mark the bucket ready at 0, then `_launch_in_order()`.
 5. **`_launch_in_order()`**: while bucket `_next_bucket` is ready, launch `dist.all_reduce(flat, async_op=True)`, keep the Work, advance.
 6. **`finish_grad_sync()`**: check every bucket was launched; `wait()` each Work; copy each view back into `p.grad`.
 

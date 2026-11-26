@@ -95,7 +95,7 @@ Shared numbers: A100-SXM4-40GB has **108 SMs**, **40 MiB of L2**, a data-sheet H
 
 **Mechanism.** A Triton kernel is written for **one program instance**. The launch `softmax_kernel[grid](...)` with `grid = (n_rows,)` starts `n_rows` independent instances; inside, `tl.program_id(0)` tells an instance which row it owns. So the mapping is **one program ↔ one row**, and nothing in the kernel communicates between rows.
 
-Inside a program, `cols = tl.arange(0, BLOCK_SIZE)` is a *vector* of BLOCK_SIZE indices, and every operation on it (`load`, `-`, `exp`, `max`) is a vector operation. The program runs as a CUDA thread block of `32 × num_warps` threads. The compiler spreads the BLOCK_SIZE lanes across those threads: **each thread owns BLOCK_SIZE / (32 · num_warps) elements**, held in registers. A reduction such as `tl.max(x, axis=0)` combines values first inside a thread, then across the 32 lanes of a warp with shuffles, then across warps through shared memory with a barrier.
+Inside a program, `cols = tl.arange(0, BLOCK_SIZE)` is a *vector* of BLOCK_SIZE indices, and every operation on it (`load`, `-`, `exp`, `max`) is a vector operation. The program runs as a CUDA thread block of $32 \times \text{num\_warps}$ threads. The compiler spreads the BLOCK_SIZE lanes across those threads: **each thread owns BLOCK_SIZE / (32 · num_warps) elements**, held in registers. A reduction such as `tl.max(x, axis=0)` combines values first inside a thread, then across the 32 lanes of a warp with shuffles, then across warps through shared memory with a barrier.
 
 `BLOCK_SIZE` is a `tl.constexpr`: a compile-time constant, so a power of two ≥ N is needed (`triton.next_power_of_2(N)`) and each distinct value is a separately compiled kernel. `launch_config` uses 4 warps up to BLOCK 1024, 8 at 2048, and 16 from 4096 up.
 
@@ -115,14 +115,16 @@ Three consequences you will see in the logs:
 
 **Mechanism.** For one row x of length N:
 
-```
-m = max_j x_j                         (reduction 1)
-e_j = exp(x_j − m)                    every exponent ≤ 0, so e_j ∈ (0, 1] and the largest is exactly 1
-s = Σ_j e_j                           (reduction 2)   s ≥ 1, so the division is safe
-y_j = e_j / s
-```
+$$
+\begin{aligned}
+m &= \max_j x_j && \text{(reduction 1)}\\
+e_j &= \exp(x_j - m) && \text{every exponent} \le 0\text{, so } e_j \in (0, 1] \text{ and the largest is exactly 1}\\
+s &= \textstyle\sum_j e_j && \text{(reduction 2)}\quad s \ge 1\text{, so the division is safe}\\
+y_j &= e_j / s
+\end{aligned}
+$$
 
-Subtracting m does not change the result, because the factor exp(−m) cancels between numerator and denominator. It changes what the hardware computes: fp32 `exp` overflows above about 88.7, and a row of attention logits near 1e4 would otherwise become `inf / inf = NaN`.
+Subtracting m does not change the result, because the factor exp(−m) cancels between numerator and denominator. It changes what the hardware computes: fp32 `exp` overflows above about 88.7, and a row of attention logits near 1e4 would otherwise become $\infty / \infty = \text{NaN}$.
 
 **Masks.** BLOCK_SIZE ≥ N, so lanes N … BLOCK_SIZE−1 do not exist. `tl.load(ptr, mask=cols < N, other=v)` reads no memory for masked lanes and gives them the value v. Choose v so the padding lanes change neither reduction: v = −inf is the identity of `max`, and exp(−inf − m) = 0 adds nothing to the sum. The store must be masked too, or the padding lanes are written past the end of the row, into the next row or past the allocation.
 
@@ -143,17 +145,17 @@ Two edge cases follow from the formula, and torch has the same behaviour. An ent
 | Kernel | Reads | Writes |
 | --- | --- | --- |
 | `amax` | x | m (one value per row) |
-| `x − m` | x | z |
+| $x - m$ | x | z |
 | `exp` | z | e |
 | `sum` | e | s (one value per row) |
-| `e / s` | e | y |
+| $e / s$ | e | y |
 | **total, per element** | **5** | **3** |
 
 That is 8 full passes over M × N elements with two full-size intermediates (`z` and `e`) plus the output `y`. The fused kernel loads each element once, keeps the row in registers through both reductions, and stores once: **2 passes, no intermediates**. Both versions do the same arithmetic; the difference is memory traffic, about 4 × here. Softmax does a handful of FLOPs per byte, so it is memory-bound, and in the bandwidth-bound regime its time should scale with the bytes moved.
 
 Note that eager `torch.softmax` is **not** the naive version. ATen already ships fused CUDA softmax kernels. The fair comparison for your kernel is `torch`, and `naive` shows what fusion buys.
 
-**Connection to attention, and the limits of this kernel.** In MATH attention (Day 01, Day 09) the chain is `S = QKᵀ/√d → mask → P = softmax(S) → O = PV`, and S and P are both `[B, H, T, T]` tensors in HBM. A standalone fused softmax makes the *softmax step* cost one read of S and one write of P instead of eight passes, but **S is still written by the matmul and P is still read by the next matmul**. The `[B, H, T, T]` tensors are still materialized, and autograd would still save P. Removing them takes fusing across the matmuls. That is what Flash attention does: it computes S in tiles, keeps a running max and sum (the *online softmax*), rescales the partial output, and never writes S or P to HBM. That needs a looped softmax, which today's whole-row kernel is not. Inductor's long-row kernel (Block 3 Stop 5) is a small version of it.
+**Connection to attention, and the limits of this kernel.** In MATH attention (Day 01, Day 09) the chain is $S = QK^\top/\sqrt{d} \to \text{mask} \to P = \operatorname{softmax}(S) \to O = PV$, and S and P are both `[B, H, T, T]` tensors in HBM. A standalone fused softmax makes the *softmax step* cost one read of S and one write of P instead of eight passes, but **S is still written by the matmul and P is still read by the next matmul**. The `[B, H, T, T]` tensors are still materialized, and autograd would still save P. Removing them takes fusing across the matmuls. That is what Flash attention does: it computes S in tiles, keeps a running max and sum (the *online softmax*), rescales the partial output, and never writes S or P to HBM. That needs a looped softmax, which today's whole-row kernel is not. Inductor's long-row kernel (Block 3 Stop 5) is a small version of it.
 
 **Question.** For the fp32 shape M × N = 2²⁵ (128 MiB in, 128 MiB out), predict the time of `naive` relative to the fused kernel. Then predict the ratio for the same softmax inside MATH attention at Day 01's medium shape: would fusing only the softmax step remove the 32 MiB `[B, H, T, T]` saved activation per layer that Day 01 measured?
 
@@ -173,9 +175,9 @@ Note that eager `torch.softmax` is **not** the naive version. ATen already ships
 | `loop_us` | `iters` calls between two CUDA events, ÷ iters, median of 5 | **max(host submission per call, GPU time per call)**: the CPU queues ahead while it is faster than the GPU |
 | `graph_us` | the same `iters` calls captured in one CUDA Graph, replayed | ≈ **GPU time per call**: host submission is gone (Day 03) |
 
-So `loop_us ≫ graph_us` means **launch-bound**: the GPU waits for the CPU. `loop_us ≈ graph_us` means the GPU is the bottleneck, and the question becomes *which* part of the GPU.
+So $\text{loop\_us} \gg \text{graph\_us}$ means **launch-bound**: the GPU waits for the CPU. $\text{loop\_us} \approx \text{graph\_us}$ means the GPU is the bottleneck, and the question becomes *which* part of the GPU.
 
-**Effective bandwidth.** `bytes = 2 · M · N · element_size` (one read and one write per element, the minimum for any softmax), and `GB/s = bytes / time`. This is a property of the *workload*, not a measured DRAM byte count, and it is reported for every implementation with the same definition. The **measured hardware reference** is the `copy` row: `out.copy_(x)` moves exactly those bytes with no math, giving an achieved transfer rate of 1,362 GB/s **[derived]** at FP32 32,768 × 1,024 in the reference run. A softmax near copy speed at the same shape is consistent with a bandwidth limit. Rows flagged **L2** have `bytes ≤ 40 MiB`: back-to-back calls can then hit in L2, and effective GB/s can exceed DRAM bandwidth. Those rows are not DRAM measurements.
+**Effective bandwidth.** $\text{bytes} = 2 \cdot M \cdot N \cdot \text{element\_size}$ (one read and one write per element, the minimum for any softmax), and $\text{GB/s} = \text{bytes} / \text{time}$. This is a property of the *workload*, not a measured DRAM byte count, and it is reported for every implementation with the same definition. The **measured hardware reference** is the `copy` row: `out.copy_(x)` moves exactly those bytes with no math, giving an achieved transfer rate of 1,362 GB/s **[derived]** at FP32 32,768 × 1,024 in the reference run. A softmax near copy speed at the same shape is consistent with a bandwidth limit. Rows flagged **L2** have $\text{bytes} \le 40\ \text{MiB}$: back-to-back calls can then hit in L2, and effective GB/s can exceed DRAM bandwidth. Those rows are not DRAM measurements.
 
 **Four regimes, and what each sweep isolates:**
 
@@ -184,7 +186,7 @@ So `loop_us ≫ graph_us` means **launch-bound**: the GPU waits for the CPU. `lo
 | Launch-bound | `loop_us` flat as M grows, `graph_us` much smaller | `count` (small M), `launch` |
 | Under-filled GPU | Few programs relative to SM count, `graph_us` nearly flat as M grows | `count` with long rows and few rows |
 | Bandwidth-bound | GB/s ≈ `copy` | `rows` (mid N), `padding` |
-| Kernel-limited | GB/s well below `copy` at the same bytes, `loop_us ≈ graph_us` | `rows` at N = 128 and N = 65,536, `warps` |
+| Kernel-limited | GB/s well below `copy` at the same bytes, $\text{loop\_us} \approx \text{graph\_us}$ | `rows` at N = 128 and N = 65,536, `warps` |
 
 **How the number of rows changes the result.** With fixed N, M decides three things at once: the bytes (time per byte only becomes meaningful once the kernel is longer than the launch), the number of programs (fewer rows than SMs leaves SMs idle), and whether the data fits in L2. The `count` stage moves M from 1 to 32,768 so you can watch all three happen.
 
@@ -259,7 +261,7 @@ Read `softmax_controls.py` (30 lines). Each control is the reference with one li
 
 | Control | Change | Passes | Caught by |
 | --- | --- | --- | --- |
-| `no_max` | no `x − max(x)` | random rows | rows near 1e4: values overflow |
+| `no_max` | no $x - \max(x)$ | random rows | rows near 1e4: values overflow |
 | `zero_fill` | masked loads use `other=0.0` | N = 1,024 (no padding lanes) | N = 1,000: padding lanes add exp(0 − m) to the sum |
 | `no_store_mask` | unmasked store | N = 1,024 | N = 1,000: zeros written over the sentinel padding |
 
@@ -283,7 +285,7 @@ Compare Part 1 with the reference. The same configuration should give the same r
 
 ### Stage 5 (optional, stretch, 30 min): RMSNorm
 
-`y = x / sqrt(mean(x²) + eps) · w`. Write `rmsnorm` in `my_softmax.py` (kernel + wrapper; copy the softmax wrapper's structure). Then run:
+$y = x / \sqrt{\operatorname{mean}(x^2) + \varepsilon} \cdot w$. Write `rmsnorm` in `my_softmax.py` (kernel + wrapper; copy the softmax wrapper's structure). Then run:
 
 ```bash
 python experiments/day10_triton_softmax/check_softmax.py --impl mine --op rmsnorm   # RMSNORM CHECK: PASSED
@@ -298,7 +300,7 @@ Three things differ from softmax. The neutral padding value for a *sum* of squar
 | Wrong only when N is not a power of two | masked load with the wrong `other`, or a missing mask on the load |
 | Values correct, sentinel padding overwritten | store without the mask |
 | NaN/inf on large inputs, fine on `randn` | no max subtraction |
-| fp16/bf16 results off by more than the tolerance, or `max\|y−fp64\|` much larger than torch's | reductions done in the input dtype: `tl.sum` does not widen floats (no `.to(tl.float32)` after the load) |
+| fp16/bf16 results off by more than the tolerance, or $\max\lvert y - \text{fp64}\rvert$ much larger than torch's | reductions done in the input dtype: `tl.sum` does not widen floats (no `.to(tl.float32)` after the load) |
 | `CompilationError` with `arange's range must be a power of 2` | BLOCK_SIZE not a power of two (use `launch_config`) |
 | Correct for small tensors, garbage or illegal address for huge ones | `row * stride` overflowed int32 |
 | Every new N seems to recompile | it should not: `n_cols` is a runtime argument. A new BLOCK_SIZE, dtype, num_warps, or a change in "divisible by 16" of an integer argument or pointer does recompile (Block 3 Stop 3) |
@@ -402,7 +404,7 @@ scp -P <port> -r "root@<host>:/workspace/AI-Infra-Learning/outputs/day10_softmax
 
 ### How to read the `check` log
 
-One summary line per dtype: cases, failures, `max|y−torch|`, `max|y−fp64|` for yours and for torch's, and `max|rowsum−1|`. Then the stability table, the sentinel count, the contract line, the controls (ref only) and the verdict. `max|y−fp64|` should be about the same for both implementations. If yours is much larger in fp16/bf16, you are not computing in fp32.
+One summary line per dtype: cases, failures, $\max\lvert y - \text{torch}\rvert$, $\max\lvert y - \text{fp64}\rvert$ for yours and for torch's, and $\max\lvert \text{rowsum} - 1\rvert$. Then the stability table, the sentinel count, the contract line, the controls (ref only) and the verdict. $\max\lvert y - \text{fp64}\rvert$ should be about the same for both implementations. If yours is much larger in fp16/bf16, you are not computing in fp32.
 
 ### How to read the `inspect` log
 
@@ -413,7 +415,7 @@ Part 1: for each N, BLOCK, warps, elements per thread, registers, spills, and th
 Each row is one implementation at one shape. The pivot tables at the end give `loop_us (GB/s)` side by side and `torch/triton` (> 1 means Triton is faster). Read them in this order:
 
 1. **`count`, small M.** Every implementation is flat. Note the floors (Triton, torch, copy, naive, compile) and compare `loop_us` with `graph_us`. → launch overhead.
-2. **`count`, growing M.** Find the M where `loop_us ≈ graph_us`, and the rows flagged `L2` with GB/s above copy. → under-filled vs bandwidth-bound, and L2.
+2. **`count`, growing M.** Find the M where $\text{loop\_us} \approx \text{graph\_us}$, and the rows flagged `L2` with GB/s above copy. → under-filled vs bandwidth-bound, and L2.
 3. **`rows`, middle N.** `triton` ≈ `copy` ≈ 1,350 GB/s. `naive` ≈ a quarter of that. → fusion, bandwidth-bound.
 4. **`rows`, ends.** N = 128 (Triton below torch) and N = 65,536 (everyone below copy). Read them together with `inspect` Part 1 and the `warps` stage. → kernel-limited, **[not isolated]**.
 5. **`padding`.** N = 1,000, 1,024 and 1,025 for Triton: does doubling BLOCK at 1,025 (half the lanes masked) cost bandwidth? Does `compile` behave the same?

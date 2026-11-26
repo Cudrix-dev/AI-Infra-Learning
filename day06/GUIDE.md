@@ -79,12 +79,12 @@ ZeRO (Rajbhandari et al., 2020) removes the redundancy in stages: stage 1 shards
 
 ### 1.2 One optimizer step of ZeRO-1
 
-```
-every rank:  K x backward  ->  flat_grad = sum_j w_j g_j  (full size, local)
-reduce_scatter(flat_grad)  ->  rank r holds the SUM over ranks for ITS slice [r*S, (r+1)*S); divide by W
-AdamW on the slice         ->  only S = Ψ/W elements updated; exp_avg, exp_avg_sq allocated for S elements
-all_gather(flat_param)     ->  every rank receives the other slices: full, identical parameters again
-```
+| Operation | Result |
+| --- | --- |
+| every rank: $K$ × backward | $\text{flat\_grad} = \sum_j w_j g_j$ (full size, local) |
+| `reduce_scatter(flat_grad)` | rank $r$ holds the SUM over ranks for ITS slice $[rS,\ (r+1)S)$; divide by $W$ |
+| AdamW on the slice | only $S = \Psi/W$ elements updated; `exp_avg`, `exp_avg_sq` allocated for $S$ elements |
+| `all_gather(flat_param)` | every rank receives the other slices: full, identical parameters again |
 
 **Communication volume is unchanged.** A ring all-reduce *is* a reduce-scatter followed by an all-gather: each rank sends (W − 1)/W · P in each half. ZeRO-1 splits the two halves and puts the optimizer between them: the reduce-scatter delivers exactly the gradient slice the rank will update, and the all-gather moves updated parameters instead of reduced gradients. Bytes sent per rank per window at W = 2:
 
@@ -145,7 +145,7 @@ What each variant keeps allocated **between microbatches** (after the first step
 
 1. **Parameters are views of `flat_param`.** `p.data = flat_param[off:off+n].view_as(p)`. The all-gather writes straight into the model; nothing is copied back.
 2. **Gradients are views of `flat_grad`** (Day 03's `grad_as_view`). `AccumulateGrad` adds each microbatch in place, so after K backwards the buffer already holds the flat window sum.
-3. **In-place collectives.** NCCL's reduce-scatter is in place when the output is the rank's own slice of the input (`recvbuff == sendbuff + rank · count`); same for all-gather. The reduced gradient slice lands in `flat_grad[lo:hi]`, the optimizer's slice *is* `flat_param[lo:hi]` (`nn.Parameter(view)` shares storage), and no extra P/W buffers exist.
+3. **In-place collectives.** NCCL's reduce-scatter is in place when the output is the rank's own slice of the input ($\text{recvbuff} = \text{sendbuff} + \text{rank} \cdot \text{count}$); same for all-gather. The reduced gradient slice lands in `flat_grad[lo:hi]`, the optimizer's slice *is* `flat_param[lo:hi]` (`nn.Parameter(view)` shares storage), and no extra P/W buffers exist.
 
 **The pitfall:** PyTorch's default `zero_grad()` is `set_to_none=True`. It replaces the views with `None`, the next backward allocates fresh `p.grad` tensors, and `flat_grad` silently stays zero. Nothing crashes; AdamW steps with a zero gradient. That is the `grad_set_to_none` control.
 
@@ -193,7 +193,7 @@ Which control passes check A, and why? Which controls keep R green?
 | Bitwise groups | Same local accumulation and two-rank reduction operands; elementwise AdamW. Per-microbatch reductions change floating-point grouping. | `torch_zero`, `torch_zero_bucket`, `flat_ar`, `zero1` should match `ddp` bitwise in the tested W=2 setting. `zero1_rs_every` should be close, not necessarily bitwise. Single-process big-batch comparisons use tolerances; W≥3 is not covered. | All four boundary variants match DDP on the five saved quantities. `rs_every` does not; final parameter maximum difference is 3.643e−7. |
 | Which checks each control fails | Follow when the fault first affects gradients, parameter replicas and the final gathered state. A/C inspect step 0; R checks every update; S here compares final state. | `no_reduce_scatter`: A/B/E/S; `no_allgather`: B/E/R/S; `grad_set_to_none`: A/B/E/S; `rs_overwrite`: A/B/E/S. Required detectors: A / R / A / A, respectively. | All four fault patterns and named detectors match. D passes all four; C passes because the first loss precedes the faulty update. With `no_allgather`, the first-step state can still be correct; the recorded S failure is after subsequent divergent-model steps. |
 
-Previously derived by the learner: equal-slice state is `2P/W` and the saving is `2P(1−1/W)`; W=2 gives state P and saving P, while W=4 gives state P/2 and saving 3P/2. The W=4 result is theoretical, not a four-GPU measurement. A and S can fail while R passes because parameter all-gather distributes the same erroneous owner slices to every rank. The later synchronization study qualifies the latency interpretation; it does not turn the original slow-link residual into a measured fixed launch cost.
+Previously derived by the learner: equal-slice state is $2P/W$ and the saving is $2P(1 - 1/W)$; W=2 gives state P and saving P, while W=4 gives state P/2 and saving 3P/2. The W=4 result is theoretical, not a four-GPU measurement. A and S can fail while R passes because parameter all-gather distributes the same erroneous owner slices to every rank. The later synchronization study qualifies the latency interpretation; it does not turn the original slow-link residual into a measured fixed launch cost.
 
 ### 1.9 New rules (on top of Days 02–04)
 
@@ -216,7 +216,7 @@ From Ψ = 27,443,200, write the §1.4 table in MiB and the four collective rows 
 
 Copy `zero1.py` to a scratch name, delete the bodies under `YOU WRITE`, and rewrite them:
 
-1. **Flat parameter buffer.** Size `padded = ceil(Ψ / W) · W`; copy each parameter in, re-point `p.data` to its view, then one `dist.broadcast` from rank 0 (ranks start from different seeds on purpose).
+1. **Flat parameter buffer.** Size $\text{padded} = \lceil \Psi / W \rceil \cdot W$; copy each parameter in, re-point `p.data` to its view, then one `dist.broadcast` from rank 0 (ranks start from different seeds on purpose).
 2. **Where gradients live.** Boundary variants: `flat_grad` with `p.grad` views. `rs_every`: no full buffer; a `grad_acc` of S elements.
 3. **The optimizer's slice.** `nn.Parameter(flat_param[lo:hi])`, its `.grad` set to the matching slice of `flat_grad` (or to `grad_acc`), and a torch `AdamW(foreach=False, fused=False)` over that one parameter. Assert that it aliases `flat_param`.
 4. **The gradient side.** `reduce_grads`: in-place reduce-scatter (or all-reduce for `shard=False`), then `div_(W)`. `reduce_microbatch` (rs_every only): concatenate, free `p.grad`, in-place reduce-scatter into the temporary's slice, divide, `add_` into `grad_acc`.

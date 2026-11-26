@@ -143,7 +143,7 @@ The drop is exactly B·T·V·4 bytes = 128 MiB, the logits tensor. After the cha
 
 ### Who is the bottleneck: CPU or GPU?
 
-The profiler sums GPU kernel time per step (5 profiled medium steps, `Self CUDA time total / 5`). Comparing it with the measured step time shows how busy the GPU actually was:
+The profiler sums GPU kernel time per step (5 profiled medium steps, $\text{Self CUDA time total} / 5$). Comparing it with the measured step time shows how busy the GPU actually was:
 
 | Medium, deterministic | Desktop (4090) | Server (5090) |
 | --- | ---: | ---: |

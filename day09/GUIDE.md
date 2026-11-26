@@ -91,7 +91,7 @@ The shared numbers: Ψ = 27,443,200 parameters, **P = 104.69 MiB** in FP32. The 
 
 **Predict.** Fill this table for bf16 autocast (fp32 or bf16 in each cell): the parameters; the output of the token embedding, of a LayerNorm, of a Linear, of a whole block (the residual stream), of the head (the logits); the attention softmax; the loss; `p.grad`; AdamW's `exp_avg`.
 
-**Mechanism.** `torch.autocast` changes **no tensor you own**. It is a dispatcher key: inside the region, every op on its *lower-precision list* (matmul-like ops: `mm`, `addmm`, `bmm`, `linear`, `baddbmm`, `scaled_dot_product_attention`, ...) first casts its floating inputs to the low dtype. Every op on its *fp32 list* (`layer_norm`, `nll_loss`, `softmax` when called directly, ...) casts them to fp32. Every other op runs in whatever dtype its inputs already have, following the usual type-promotion rules (`bf16 + fp32 → fp32`).
+**Mechanism.** `torch.autocast` changes **no tensor you own**. It is a dispatcher key: inside the region, every op on its *lower-precision list* (matmul-like ops: `mm`, `addmm`, `bmm`, `linear`, `baddbmm`, `scaled_dot_product_attention`, ...) first casts its floating inputs to the low dtype. Every op on its *fp32 list* (`layer_norm`, `nll_loss`, `softmax` when called directly, ...) casts them to fp32. Every other op runs in whatever dtype its inputs already have, following the usual type-promotion rules ($\text{bf16} + \text{fp32} \to \text{fp32}$).
 
 **Check** (`dtypes` log, first table, [measured]):
 
@@ -314,7 +314,7 @@ Run `python experiments/day09_mixed_precision/find_symbols.py` for the line numb
 ### Stop 3 (10 min, required): clipping. `torch/nn/utils/clip_grad.py`: `clip_grad_norm_` `:185`, `_get_total_norm` `:49`, `_clip_grads_with_norm_` `:120`
 
 - `_get_total_norm`: per-device, per-dtype grouped norms, then the norm of norms. It reads whatever is in `.grad`.
-- `_clip_grads_with_norm_`: `clip_coef = max_norm / (total_norm + 1e-6)`, clamped to 1, multiplied in place. No host sync (the coefficient stays on the GPU).
+- `_clip_grads_with_norm_`: $\text{clip\_coef} = \text{max\_norm} / (\text{total\_norm} + 10^{-6})$, clamped to 1, multiplied in place. No host sync (the coefficient stays on the GPU).
 
 *Q: with `clip_before_unscale`, compute the coefficient from your log's C1 value and check that AdamW received max_norm / S.*
 

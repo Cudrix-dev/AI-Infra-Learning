@@ -59,7 +59,7 @@ The kernel's error against fp64 equals `torch.softmax`'s in every dtype, so comp
 
 ## 4. Timing and bandwidth
 
-Times come from the benchmark **[measured]**. Effective GB/s **[derived]** uses `2 × M × N × element_size` divided by time, in decimal GB/s. All implementations use the same byte model. The copy baseline uses the same shape and dtype. The L2 flag means the modeled input plus output footprint fits within 40 MiB.
+Times come from the benchmark **[measured]**. Effective GB/s **[derived]** uses $2 \times M \times N \times \text{element\_size}$ divided by time, in decimal GB/s. All implementations use the same byte model. The copy baseline uses the same shape and dtype. The L2 flag means the modeled input plus output footprint fits within 40 MiB.
 
 ### 4.1 Rows stage (2²⁵ elements per call)
 
