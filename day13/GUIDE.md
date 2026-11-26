@@ -119,13 +119,8 @@ It is the same rule as a 3-D array laid out in memory with TP as the contiguous 
 
 <details><summary>Answer P1</summary>
 
-$$
-\begin{aligned}
-\text{DP}=1,\ \text{TP}=2,\ \text{PP}=2:&\quad \text{rank } 0 \mapsto (0,0,0),\ \ \text{rank } 1 \mapsto (1,0,0),\ \ \text{rank } 2 \mapsto (0,0,1),\ \ \text{rank } 3 \mapsto (1,0,1)\\
-\text{TP}=2,\ \text{DP}=2,\ \text{PP}=2:&\quad \text{rank } r \mapsto \big(r \bmod 2,\ \lfloor r/2 \rfloor \bmod 2,\ \lfloor r/4 \rfloor\big)\\
-&\quad \text{stage 1} = \text{ranks } 4,5,6,7;\quad \text{TP rank 1} = \text{ranks } 1,3,5,7
-\end{aligned}
-$$
+- DP=1, TP=2, PP=2: rank $0 \mapsto (0,0,0)$, rank $1 \mapsto (1,0,0)$, rank $2 \mapsto (0,0,1)$, rank $3 \mapsto (1,0,1)$.
+- TP=2, DP=2, PP=2: rank $r \mapsto (r \bmod 2,\ \lfloor r/2 \rfloor \bmod 2,\ \lfloor r/4 \rfloor)$. Stage 1 is ranks 4, 5, 6, 7, and TP rank 1 is ranks 1, 3, 5, 7.
 
 `rank_mapper.py --layouts all` prints these and four more layouts. In the pre-test they matched Megatron's `RankGenerator` (`mapper.log`).
 </details>
