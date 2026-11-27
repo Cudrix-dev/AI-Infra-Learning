@@ -450,7 +450,7 @@ Both sessions used the same seed. In this toy run the most balanced setting also
 
 ### §4 Optional predictions (P9–P12, +20 min)
 
-**P9 (aux scope).** Megatron's default `aux_loss` reduces the counts over `tp_cp_group`, which has size 1 here. So each DP rank uses its **own** f with its own P: $\mathrm{mean}_r E \cdot \sum_i f_{r,i} \cdot P_{r,i}$. The one-GPU loss is $E \cdot \sum_i \bar f_i \cdot \bar P_i$. When are they equal? Is the local version usually larger or smaller?
+**P9 (aux scope).** Megatron's default `aux_loss` reduces the counts over `tp_cp_group`, which has size 1 here. So each DP rank uses its **own** f with its own P: $\frac{1}{\text{DP}} \sum_r E \cdot \sum_i f_{r,i} \cdot P_{r,i}$. The one-GPU loss is $E \cdot \sum_i \bar f_i \cdot \bar P_i$. When are they equal? Is the local version usually larger or smaller?
 
 <details><summary>Answer P9</summary>
 
