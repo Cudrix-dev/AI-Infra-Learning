@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 962" width="1240" height="962"><defs><marker id="ah0b7f86" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7f86"/></marker><marker id="ah1f2937" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/></marker><marker id="ah2f9e5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="ah3b6fd4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd4"/></marker><marker id="ah6b7280" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker><marker id="ah7048c8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048c8"/></marker><marker id="ah94a3b8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker><marker id="ahb91c1c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/></marker><marker id="ahcbd5e1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/></marker><marker id="ahe3891b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3891b"/></marker></defs>
+<rect width="1240" height="962" rx="16" fill="#ffffff"/>
+<text x="30.0" y="36.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="18" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Backward at EP=4: gradients take the same bands in reverse, then finish_grads</text>
+<text x="30.0" y="57.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">same ragged example; autograd replays the saved split lists, so there is no count exchange and no host sync in backward</text>
+<text x="110.0" y="110.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">dx_r on the sources</text>
+<text x="110.0" y="127.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">scatter to token order</text>
+<text x="318.0" y="110.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">Dispatch backward</text>
+<text x="318.0" y="127.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">in=column, out=row</text>
+<text x="620.0" y="110.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">Expert backward</text>
+<text x="620.0" y="127.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dX rows + dW_j</text>
+<text x="913.0" y="110.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">Combine backward</text>
+<text x="913.0" y="127.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">in=row, out=column</text>
+<text x="1140.0" y="110.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">dy_r on the sources</text>
+<text x="1140.0" y="127.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">× w, regroup</text>
+<line x1="1080.0" y1="84.0" x2="160.0" y2="84.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#ah94a3b8)"/>
+<rect x="168.0" y="138.0" width="34.0" height="108.8" rx="0" fill="#dbe6fb" stroke="#3b6fd4" stroke-width="0.8"/>
+<rect x="1038.0" y="138.0" width="34.0" height="108.8" rx="0" fill="#dbe6fb" stroke="#3b6fd4" stroke-width="0.8"/>
+<rect x="168.0" y="138.0" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="1038.0" y="138.0" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="168.0" y="299.8" width="34.0" height="73.1" rx="0" fill="#dbe6fb" stroke="#3b6fd4" stroke-width="0.8"/>
+<rect x="1038.0" y="299.8" width="34.0" height="73.1" rx="0" fill="#dbe6fb" stroke="#3b6fd4" stroke-width="0.8"/>
+<rect x="168.0" y="372.9" width="34.0" height="35.7" rx="0" fill="#d5efdf" stroke="#2f9e5b" stroke-width="0.8"/>
+<rect x="1038.0" y="372.9" width="34.0" height="35.7" rx="0" fill="#d5efdf" stroke="#2f9e5b" stroke-width="0.8"/>
+<rect x="168.0" y="299.8" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="1038.0" y="299.8" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="168.0" y="461.7" width="34.0" height="27.2" rx="0" fill="#d5efdf" stroke="#2f9e5b" stroke-width="0.8"/>
+<rect x="1038.0" y="461.7" width="34.0" height="27.2" rx="0" fill="#d5efdf" stroke="#2f9e5b" stroke-width="0.8"/>
+<rect x="168.0" y="488.9" width="34.0" height="81.6" rx="0" fill="#fde6c8" stroke="#e3891b" stroke-width="0.8"/>
+<rect x="1038.0" y="488.9" width="34.0" height="81.6" rx="0" fill="#fde6c8" stroke="#e3891b" stroke-width="0.8"/>
+<rect x="168.0" y="461.7" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="1038.0" y="461.7" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="168.0" y="623.5" width="34.0" height="54.4" rx="0" fill="#dbe6fb" stroke="#3b6fd4" stroke-width="0.8"/>
+<rect x="1038.0" y="623.5" width="34.0" height="54.4" rx="0" fill="#dbe6fb" stroke="#3b6fd4" stroke-width="0.8"/>
+<rect x="168.0" y="677.9" width="34.0" height="54.4" rx="0" fill="#fde6c8" stroke="#e3891b" stroke-width="0.8"/>
+<rect x="1038.0" y="677.9" width="34.0" height="54.4" rx="0" fill="#fde6c8" stroke="#e3891b" stroke-width="0.8"/>
+<rect x="168.0" y="623.5" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="1038.0" y="623.5" width="34.0" height="108.8" rx="3" fill="none" stroke="#1f2937" stroke-width="1.4"/>
+<rect x="452.0" y="138.0" width="336.0" height="236.3" rx="8" fill="#dbe6fb" stroke="#3b6fd4" stroke-width="1.5"/>
+<rect x="452.0" y="138.0" width="34.0" height="108.8" rx="0" fill="#ffffff" stroke="#3b6fd4" stroke-width="0.8"/>
+<text x="469.0" y="196.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="754.0" y="138.0" width="34.0" height="108.8" rx="0" fill="#ffffff" stroke="#3b6fd4" stroke-width="0.8"/>
+<text x="771.0" y="196.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="452.0" y="246.8" width="34.0" height="73.1" rx="0" fill="#ffffff" stroke="#3b6fd4" stroke-width="0.8"/>
+<text x="469.0" y="287.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">1</text>
+<rect x="754.0" y="246.8" width="34.0" height="73.1" rx="0" fill="#ffffff" stroke="#3b6fd4" stroke-width="0.8"/>
+<text x="771.0" y="287.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">1</text>
+<rect x="452.0" y="319.9" width="34.0" height="54.4" rx="0" fill="#ffffff" stroke="#3b6fd4" stroke-width="0.8"/>
+<text x="469.0" y="351.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">3</text>
+<rect x="754.0" y="319.9" width="34.0" height="54.4" rx="0" fill="#ffffff" stroke="#3b6fd4" stroke-width="0.8"/>
+<text x="771.0" y="351.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">3</text>
+<rect x="452.0" y="404.3" width="336.0" height="66.0" rx="8" fill="#d5efdf" stroke="#2f9e5b" stroke-width="1.5"/>
+<rect x="452.0" y="405.8" width="34.0" height="35.7" rx="0" fill="#ffffff" stroke="#2f9e5b" stroke-width="0.8"/>
+<text x="469.0" y="427.7" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">1</text>
+<rect x="754.0" y="405.8" width="34.0" height="35.7" rx="0" fill="#ffffff" stroke="#2f9e5b" stroke-width="0.8"/>
+<text x="771.0" y="427.7" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">1</text>
+<rect x="452.0" y="441.5" width="34.0" height="27.2" rx="0" fill="#ffffff" stroke="#2f9e5b" stroke-width="0.8"/>
+<text x="469.0" y="459.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">2</text>
+<rect x="754.0" y="441.5" width="34.0" height="27.2" rx="0" fill="#ffffff" stroke="#2f9e5b" stroke-width="0.8"/>
+<text x="771.0" y="459.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">2</text>
+<rect x="452.0" y="500.3" width="336.0" height="66.0" rx="8" fill="#ffffff" stroke="#7048c8" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="452.0" y="596.3" width="336.0" height="136.0" rx="8" fill="#fde6c8" stroke="#e3891b" stroke-width="1.5"/>
+<rect x="452.0" y="596.3" width="34.0" height="81.6" rx="0" fill="#ffffff" stroke="#e3891b" stroke-width="0.8"/>
+<text x="469.0" y="641.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">2</text>
+<rect x="754.0" y="596.3" width="34.0" height="81.6" rx="0" fill="#ffffff" stroke="#e3891b" stroke-width="0.8"/>
+<text x="771.0" y="641.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">2</text>
+<rect x="452.0" y="677.9" width="34.0" height="54.4" rx="0" fill="#ffffff" stroke="#e3891b" stroke-width="0.8"/>
+<text x="469.0" y="709.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">3</text>
+<rect x="754.0" y="677.9" width="34.0" height="54.4" rx="0" fill="#ffffff" stroke="#e3891b" stroke-width="0.8"/>
+<text x="771.0" y="709.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="10.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">3</text>
+<path d="M202.0,138.0 C327.0,138.0 327.0,138.0 452.0,138.0 L452.0,246.8 C327.0,246.8 327.0,246.8 202.0,246.8 Z" fill="#3b6fd4" fill-opacity="0.38" stroke="#3b6fd4" stroke-opacity="0.7" stroke-width="0.8"/>
+<path d="M788.0,138.0 C913.0,138.0 913.0,138.0 1038.0,138.0 L1038.0,246.8 C913.0,246.8 913.0,246.8 788.0,246.8 Z" fill="#3b6fd4" fill-opacity="0.38" stroke="#3b6fd4" stroke-opacity="0.7" stroke-width="0.8"/>
+<text x="327.0" y="196.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#3b6fd4" text-anchor="middle" font-weight="700" xml:space="preserve">128</text>
+<text x="913.0" y="196.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#3b6fd4" text-anchor="middle" font-weight="700" xml:space="preserve">128</text>
+<path d="M202.0,299.8 C327.0,299.8 327.0,246.8 452.0,246.8 L452.0,319.9 C327.0,319.9 327.0,372.9 202.0,372.9 Z" fill="#3b6fd4" fill-opacity="0.38" stroke="#3b6fd4" stroke-opacity="0.7" stroke-width="0.8"/>
+<path d="M788.0,246.8 C913.0,246.8 913.0,299.8 1038.0,299.8 L1038.0,372.9 C913.0,372.9 913.0,319.9 788.0,319.9 Z" fill="#3b6fd4" fill-opacity="0.38" stroke="#3b6fd4" stroke-opacity="0.7" stroke-width="0.8"/>
+<text x="327.0" y="313.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#3b6fd4" text-anchor="middle" font-weight="700" xml:space="preserve">86</text>
+<text x="913.0" y="313.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#3b6fd4" text-anchor="middle" font-weight="700" xml:space="preserve">86</text>
+<path d="M202.0,372.9 C327.0,372.9 327.0,405.8 452.0,405.8 L452.0,441.5 C327.0,441.5 327.0,408.6 202.0,408.6 Z" fill="#2f9e5b" fill-opacity="0.38" stroke="#2f9e5b" stroke-opacity="0.7" stroke-width="0.8"/>
+<path d="M788.0,405.8 C913.0,405.8 913.0,372.9 1038.0,372.9 L1038.0,408.6 C913.0,408.6 913.0,441.5 788.0,441.5 Z" fill="#2f9e5b" fill-opacity="0.38" stroke="#2f9e5b" stroke-opacity="0.7" stroke-width="0.8"/>
+<text x="327.0" y="411.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#2f9e5b" text-anchor="middle" font-weight="700" xml:space="preserve">42</text>
+<text x="913.0" y="411.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#2f9e5b" text-anchor="middle" font-weight="700" xml:space="preserve">42</text>
+<path d="M202.0,461.7 C327.0,461.7 327.0,441.5 452.0,441.5 L452.0,468.7 C327.0,468.7 327.0,488.9 202.0,488.9 Z" fill="#2f9e5b" fill-opacity="0.38" stroke="#2f9e5b" stroke-opacity="0.7" stroke-width="0.8"/>
+<path d="M788.0,441.5 C913.0,441.5 913.0,461.7 1038.0,461.7 L1038.0,488.9 C913.0,488.9 913.0,468.7 788.0,468.7 Z" fill="#2f9e5b" fill-opacity="0.38" stroke="#2f9e5b" stroke-opacity="0.7" stroke-width="0.8"/>
+<text x="327.0" y="469.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#2f9e5b" text-anchor="middle" font-weight="700" xml:space="preserve">32</text>
+<text x="913.0" y="469.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#2f9e5b" text-anchor="middle" font-weight="700" xml:space="preserve">32</text>
+<path d="M202.0,488.9 C327.0,488.9 327.0,596.3 452.0,596.3 L452.0,677.9 C327.0,677.9 327.0,570.5 202.0,570.5 Z" fill="#e3891b" fill-opacity="0.38" stroke="#e3891b" stroke-opacity="0.7" stroke-width="0.8"/>
+<path d="M788.0,596.3 C913.0,596.3 913.0,488.9 1038.0,488.9 L1038.0,570.5 C913.0,570.5 913.0,677.9 788.0,677.9 Z" fill="#e3891b" fill-opacity="0.38" stroke="#e3891b" stroke-opacity="0.7" stroke-width="0.8"/>
+<text x="327.0" y="587.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#e3891b" text-anchor="middle" font-weight="700" xml:space="preserve">96</text>
+<text x="913.0" y="587.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#e3891b" text-anchor="middle" font-weight="700" xml:space="preserve">96</text>
+<path d="M202.0,623.5 C327.0,623.5 327.0,319.9 452.0,319.9 L452.0,374.3 C327.0,374.3 327.0,677.9 202.0,677.9 Z" fill="#3b6fd4" fill-opacity="0.38" stroke="#3b6fd4" stroke-opacity="0.7" stroke-width="0.8"/>
+<path d="M788.0,319.9 C913.0,319.9 913.0,623.5 1038.0,623.5 L1038.0,677.9 C913.0,677.9 913.0,374.3 788.0,374.3 Z" fill="#3b6fd4" fill-opacity="0.38" stroke="#3b6fd4" stroke-opacity="0.7" stroke-width="0.8"/>
+<text x="327.0" y="502.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#3b6fd4" text-anchor="middle" font-weight="700" xml:space="preserve">64</text>
+<text x="913.0" y="502.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#3b6fd4" text-anchor="middle" font-weight="700" xml:space="preserve">64</text>
+<path d="M202.0,677.9 C327.0,677.9 327.0,677.9 452.0,677.9 L452.0,732.3 C327.0,732.3 327.0,732.3 202.0,732.3 Z" fill="#e3891b" fill-opacity="0.38" stroke="#e3891b" stroke-opacity="0.7" stroke-width="0.8"/>
+<path d="M788.0,677.9 C913.0,677.9 913.0,677.9 1038.0,677.9 L1038.0,732.3 C913.0,732.3 913.0,732.3 788.0,732.3 Z" fill="#e3891b" fill-opacity="0.38" stroke="#e3891b" stroke-opacity="0.7" stroke-width="0.8"/>
+<text x="327.0" y="709.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#e3891b" text-anchor="middle" font-weight="700" xml:space="preserve">64</text>
+<text x="913.0" y="709.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#e3891b" text-anchor="middle" font-weight="700" xml:space="preserve">64</text>
+<text x="158.0" y="178.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="end" font-weight="700" xml:space="preserve">rank 0</text>
+<text x="158.0" y="194.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">dx<tspan baseline-shift="sub" font-size="75%">0</tspan>: 128 rows</text>
+<text x="158.0" y="210.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">+ router grad (w, aux)</text>
+<text x="1082.0" y="178.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">rank 0</text>
+<text x="1082.0" y="194.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dy<tspan baseline-shift="sub" font-size="75%">0</tspan>: 128 rows</text>
+<text x="1082.0" y="210.4" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dz = permute(dy · w)</text>
+<text x="158.0" y="340.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="end" font-weight="700" xml:space="preserve">rank 1</text>
+<text x="158.0" y="356.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">dx<tspan baseline-shift="sub" font-size="75%">1</tspan>: 128 rows</text>
+<text x="158.0" y="372.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">+ router grad (w, aux)</text>
+<text x="1082.0" y="340.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">rank 1</text>
+<text x="1082.0" y="356.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dy<tspan baseline-shift="sub" font-size="75%">1</tspan>: 128 rows</text>
+<text x="1082.0" y="372.2" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dz = permute(dy · w)</text>
+<text x="158.0" y="502.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="end" font-weight="700" xml:space="preserve">rank 2</text>
+<text x="158.0" y="518.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">dx<tspan baseline-shift="sub" font-size="75%">2</tspan>: 128 rows</text>
+<text x="158.0" y="534.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">+ router grad (w, aux)</text>
+<text x="1082.0" y="502.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">rank 2</text>
+<text x="1082.0" y="518.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dy<tspan baseline-shift="sub" font-size="75%">2</tspan>: 128 rows</text>
+<text x="1082.0" y="534.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dz = permute(dy · w)</text>
+<text x="158.0" y="663.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="end" font-weight="700" xml:space="preserve">rank 3</text>
+<text x="158.0" y="679.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">dx<tspan baseline-shift="sub" font-size="75%">3</tspan>: 128 rows</text>
+<text x="158.0" y="695.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="end" font-weight="normal" xml:space="preserve">+ router grad (w, aux)</text>
+<text x="1082.0" y="663.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">rank 3</text>
+<text x="1082.0" y="679.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dy<tspan baseline-shift="sub" font-size="75%">3</tspan>: 128 rows</text>
+<text x="1082.0" y="695.9" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dz = permute(dy · w)</text>
+<text x="620.0" y="244.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#3b6fd4" text-anchor="middle" font-weight="700" xml:space="preserve">expert 0 · rank 0</text>
+<text x="620.0" y="260.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">dW<tspan baseline-shift="sub" font-size="75%">0</tspan> = Σ over 278 rows (ranks 0, 1, 3)</text>
+<text x="620.0" y="276.1" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dX rows go back to their sources</text>
+<text x="620.0" y="425.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2f9e5b" text-anchor="middle" font-weight="700" xml:space="preserve">expert 1 · rank 1</text>
+<text x="620.0" y="441.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">dW<tspan baseline-shift="sub" font-size="75%">1</tspan> = Σ over 74 rows (ranks 1, 2)</text>
+<text x="620.0" y="457.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dX rows go back to their sources</text>
+<text x="620.0" y="521.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#7048c8" text-anchor="middle" font-weight="700" xml:space="preserve">expert 2 · rank 2</text>
+<text x="620.0" y="537.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">dW<tspan baseline-shift="sub" font-size="75%">2</tspan> = 0 exactly (not None)</text>
+<text x="620.0" y="553.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">still enters both all_to_alls</text>
+<text x="620.0" y="652.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#e3891b" text-anchor="middle" font-weight="700" xml:space="preserve">expert 3 · rank 3</text>
+<text x="620.0" y="668.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">dW<tspan baseline-shift="sub" font-size="75%">3</tspan> = Σ over 160 rows (ranks 2, 3)</text>
+<text x="620.0" y="684.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dX rows go back to their sources</text>
+<rect x="30.0" y="756.3" width="575.0" height="168.0" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="48.0" y="782.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">finish_grads, dense parameters</text>
+<text x="48.0" y="800.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">attention, LayerNorms, router, embeddings, head: a copy on every rank</text>
+<rect x="48.0" y="818.3" width="52.0" height="40.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="74.0" y="842.8" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">g<tspan baseline-shift="sub" font-size="75%">0</tspan></text>
+<rect x="110.0" y="818.3" width="52.0" height="40.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="136.0" y="842.8" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">g<tspan baseline-shift="sub" font-size="75%">1</tspan></text>
+<rect x="172.0" y="818.3" width="52.0" height="40.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="198.0" y="842.8" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">g<tspan baseline-shift="sub" font-size="75%">2</tspan></text>
+<rect x="234.0" y="818.3" width="52.0" height="40.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="260.0" y="842.8" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">g<tspan baseline-shift="sub" font-size="75%">3</tspan></text>
+<line x1="300.0" y1="838.3" x2="352.0" y2="838.3" stroke="#0b7f86" stroke-width="2" marker-end="url(#ah0b7f86)"/>
+<rect x="358.0" y="816.3" width="228.0" height="44.0" rx="8" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="472.0" y="834.8" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">all-reduce SUM over DP [0,1,2,3]</text>
+<text x="472.0" y="850.8" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">then ÷ DP (= 4)</text>
+<text x="48.0" y="884.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">result identical on all ranks (replicated check, bitwise)</text>
+<text x="48.0" y="904.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">[derived, not a control here] forget ÷ DP → every dense grad 4×</text>
+<rect x="625.0" y="756.3" width="585.0" height="168.0" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="643.0" y="782.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">finish_grads, expert parameters</text>
+<text x="643.0" y="800.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">expert j lives only on rank j (EP = 4, EDP = 1)</text>
+<text x="643.0" y="824.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">after backward, rank j already holds the sum over all sources:</text>
+<text x="643.0" y="841.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">the bands above brought every source's rows to it.</text>
+<text x="643.0" y="862.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#0b7f86" text-anchor="start" font-weight="700" xml:space="preserve">→ ÷ DP (= 4), and NO all-reduce</text>
+<text x="643.0" y="884.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">EP=2 × EDP=2: ÷ 4, then all-reduce over EDP [j, j+2]</text>
+<text x="643.0" y="904.3" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">controls: expert_sum_over_ep (ratio ≈ 0.25), expert_no_dp_scale (4.0000)</text>
+</svg>

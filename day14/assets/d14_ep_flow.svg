@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 860" width="1240" height="860"><defs><marker id="ah0b7f86" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7f86"/></marker><marker id="ah1f2937" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/></marker><marker id="ah2f9e5b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e5b"/></marker><marker id="ah3b6fd4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b6fd4"/></marker><marker id="ah6b7280" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker><marker id="ah7048c8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048c8"/></marker><marker id="ah94a3b8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker><marker id="ahb91c1c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/></marker><marker id="ahcbd5e1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#cbd5e1"/></marker><marker id="ahe3891b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3891b"/></marker></defs>
+<rect width="1240" height="860" rx="16" fill="#ffffff"/>
+<text x="30.0" y="38.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="19" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">One top-1 MoE layer at EP=4, seen from rank r (it owns expert e = r)</text>
+<text x="30.0" y="60.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">Numbered in execution order. Steps 1–3 and 7, 9–10 are local; 4, 6, 8 are collectives over the EP group [0,1,2,3]; 5 is the one device→host sync.</text>
+<rect x="30.0" y="92.0" width="204.0" height="132.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="132.0" y="137.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">1 · Input</text>
+<text x="132.0" y="154.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">x<tspan baseline-shift="sub" font-size="75%">r</tspan>  [T<tspan baseline-shift="sub" font-size="75%">r</tspan>, d]</text>
+<text x="132.0" y="171.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">T<tspan baseline-shift="sub" font-size="75%">r</tspan> = T / 4 tokens</text>
+<text x="132.0" y="188.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">small preset: 128 × 128</text>
+<line x1="237.0" y1="158.0" x2="270.0" y2="158.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="274.0" y="92.0" width="204.0" height="132.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="376.0" y="128.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">2 · Router, top-1</text>
+<text x="376.0" y="145.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">logits = x<tspan baseline-shift="sub" font-size="75%">r</tspan>W<tspan baseline-shift="super" font-size="75%">T</tspan> + b</text>
+<text x="376.0" y="162.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">probs = softmax(logits)</text>
+<text x="376.0" y="179.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">idx = argmax(probs)</text>
+<text x="376.0" y="196.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">w = probs[t, idx<tspan baseline-shift="sub" font-size="75%">t</tspan>]</text>
+<line x1="481.0" y1="158.0" x2="514.0" y2="158.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="518.0" y="92.0" width="204.0" height="132.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="620.0" y="128.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">3 · Permute</text>
+<text x="620.0" y="145.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">order = argsort(idx,</text>
+<text x="620.0" y="162.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">        stable=True)</text>
+<text x="620.0" y="179.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">counts = bincount(idx)</text>
+<text x="620.0" y="196.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">x<tspan baseline-shift="sub" font-size="75%">r</tspan>[order]: grouped by expert</text>
+<line x1="725.0" y1="158.0" x2="758.0" y2="158.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="762.0" y="92.0" width="204.0" height="132.0" rx="8" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="864.0" y="128.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">4 · Count exchange</text>
+<text x="864.0" y="145.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">all_to_all, EQUAL splits</text>
+<text x="864.0" y="162.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">send counts.view(EP, E<tspan baseline-shift="sub" font-size="75%">loc</tspan>)</text>
+<text x="864.0" y="179.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">I send row r, I get column r</text>
+<text x="864.0" y="196.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">int64, a few bytes</text>
+<line x1="969.0" y1="158.0" x2="1002.0" y2="158.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="1006.0" y="92.0" width="204.0" height="132.0" rx="8" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="1108.0" y="128.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">5 · Host sync</text>
+<text x="1108.0" y="145.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">one .tolist()  (D→H)</text>
+<text x="1108.0" y="162.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">input_splits  = row r</text>
+<text x="1108.0" y="179.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">output_splits = column r</text>
+<text x="1108.0" y="196.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">host waits for steps 2–4</text>
+<rect x="1006.0" y="312.0" width="204.0" height="132.0" rx="8" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="1108.0" y="340.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">6 · Dispatch</text>
+<text x="1108.0" y="357.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">all_to_all_single, UNEVEN</text>
+<text x="1108.0" y="374.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">send x<tspan baseline-shift="sub" font-size="75%">r</tspan>[order]</text>
+<text x="1108.0" y="391.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">in  = input_splits</text>
+<text x="1108.0" y="408.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">out = output_splits</text>
+<text x="1108.0" y="425.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">zero-size splits allowed</text>
+<line x1="1003.0" y1="378.0" x2="970.0" y2="378.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="762.0" y="312.0" width="204.0" height="132.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="864.0" y="348.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">7 · Expert e = r</text>
+<text x="864.0" y="365.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">fc1 → GELU → fc2</text>
+<text x="864.0" y="382.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">on Σ output_splits rows</text>
+<text x="864.0" y="399.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">0 rows? it still runs</text>
+<text x="864.0" y="416.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">E<tspan baseline-shift="sub" font-size="75%">loc</tspan> &gt; 1: sort_chunks first</text>
+<line x1="759.0" y1="378.0" x2="726.0" y2="378.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="518.0" y="312.0" width="204.0" height="132.0" rx="8" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="620.0" y="348.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">8 · Combine</text>
+<text x="620.0" y="365.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">all_to_all_single</text>
+<text x="620.0" y="382.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">splits SWAPPED:</text>
+<text x="620.0" y="399.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">in  = output_splits</text>
+<text x="620.0" y="416.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">out = input_splits</text>
+<line x1="515.0" y1="378.0" x2="482.0" y2="378.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="274.0" y="312.0" width="204.0" height="132.0" rx="8" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="376.0" y="348.5" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">9 · Unpermute, × w</text>
+<text x="376.0" y="365.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">y[order[k]] = y_sorted[k]</text>
+<text x="376.0" y="382.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">zeros.index_add(0,</text>
+<text x="376.0" y="399.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">          order, y_sorted)</text>
+<text x="376.0" y="416.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">y<tspan baseline-shift="sub" font-size="75%">r</tspan> = y · w  (on rank r)</text>
+<line x1="271.0" y1="378.0" x2="238.0" y2="378.0" stroke="#1f2937" stroke-width="1.6" marker-end="url(#ah1f2937)"/>
+<rect x="30.0" y="312.0" width="204.0" height="132.0" rx="8" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="132.0" y="357.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">10 · Output</text>
+<text x="132.0" y="374.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">y<tspan baseline-shift="sub" font-size="75%">r</tspan>  [T<tspan baseline-shift="sub" font-size="75%">r</tspan>, d]</text>
+<text x="132.0" y="391.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">block: h + y<tspan baseline-shift="sub" font-size="75%">r</tspan></text>
+<text x="132.0" y="408.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dropped token: + 0</text>
+<line x1="1108.0" y1="227.0" x2="1108.0" y2="308.0" stroke="#e3891b" stroke-width="2" marker-end="url(#ahe3891b)"/>
+<text x="1116.0" y="270.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#e3891b" text-anchor="start" font-weight="600" xml:space="preserve">split lists</text>
+<text x="1116.0" y="285.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#e3891b" text-anchor="start" font-weight="normal" xml:space="preserve">(Python ints)</text>
+<line x1="376.0" y1="227.0" x2="376.0" y2="308.0" stroke="#7048c8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ah7048c8)"/>
+<text x="386.0" y="264.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#7048c8" text-anchor="start" font-weight="600" xml:space="preserve">w [T<tspan baseline-shift="sub" font-size="75%">r</tspan>] stays on rank r: the router's</text>
+<text x="386.0" y="280.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#7048c8" text-anchor="start" font-weight="600" xml:space="preserve">only task-loss gradient path (§1.1)</text>
+<rect x="30.0" y="500.0" width="590.0" height="300.0" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="48.0" y="528.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Steps 4–6 on the ragged example (small preset, 128 tokens per source)</text>
+<text x="48.0" y="548.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">send matrix: row = source rank, column = destination rank (= expert)</text>
+<text x="130.0" y="582.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dst 0</text>
+<text x="190.0" y="582.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dst 1</text>
+<text x="250.0" y="582.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dst 2</text>
+<text x="310.0" y="582.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="middle" font-weight="normal" xml:space="preserve">dst 3</text>
+<text x="88.0" y="613.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="end" font-weight="normal" xml:space="preserve">src 0</text>
+<rect x="100.0" y="592.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="130.0" y="613.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">128</text>
+<rect x="160.0" y="592.0" width="60.0" height="34.0" rx="3" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.2"/>
+<text x="190.0" y="613.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="220.0" y="592.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="250.0" y="613.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="280.0" y="592.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="310.0" y="613.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<text x="88.0" y="647.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="end" font-weight="normal" xml:space="preserve">src 1</text>
+<rect x="100.0" y="626.0" width="60.0" height="34.0" rx="3" fill="#fde2e2" stroke="#b91c1c" stroke-width="1.2"/>
+<text x="130.0" y="647.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">86</text>
+<rect x="160.0" y="626.0" width="60.0" height="34.0" rx="3" fill="#fde2e2" stroke="#b91c1c" stroke-width="1.2"/>
+<text x="190.0" y="647.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">42</text>
+<rect x="220.0" y="626.0" width="60.0" height="34.0" rx="3" fill="#fde2e2" stroke="#b91c1c" stroke-width="1.2"/>
+<text x="250.0" y="647.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="280.0" y="626.0" width="60.0" height="34.0" rx="3" fill="#fde2e2" stroke="#b91c1c" stroke-width="1.2"/>
+<text x="310.0" y="647.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<text x="88.0" y="681.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="end" font-weight="normal" xml:space="preserve">src 2</text>
+<rect x="100.0" y="660.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="130.0" y="681.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="160.0" y="660.0" width="60.0" height="34.0" rx="3" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.2"/>
+<text x="190.0" y="681.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">32</text>
+<rect x="220.0" y="660.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="250.0" y="681.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="280.0" y="660.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="310.0" y="681.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">96</text>
+<text x="88.0" y="715.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" fill="#6b7280" text-anchor="end" font-weight="normal" xml:space="preserve">src 3</text>
+<rect x="100.0" y="694.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="130.0" y="715.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">64</text>
+<rect x="160.0" y="694.0" width="60.0" height="34.0" rx="3" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.2"/>
+<text x="190.0" y="715.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="220.0" y="694.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="250.0" y="715.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8" text-anchor="middle" font-weight="normal" xml:space="preserve">0</text>
+<rect x="280.0" y="694.0" width="60.0" height="34.0" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="310.0" y="715.5" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="13" fill="#1f2937" text-anchor="middle" font-weight="normal" xml:space="preserve">64</text>
+<rect x="362.0" y="594.0" width="14.0" height="14.0" rx="3" fill="#fde2e2" stroke="#b91c1c" stroke-width="1.5"/>
+<text x="384.0" y="606.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">row 1 = rank 1's input_splits</text>
+<text x="384.0" y="622.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">[86, 42, 0, 0]: known locally</text>
+<rect x="362.0" y="640.0" width="14.0" height="14.0" rx="3" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="384.0" y="652.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">column 1 = rank 1's output_splits</text>
+<text x="384.0" y="668.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="11.5" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">[0, 42, 32, 0]: from step 4</text>
+<text x="362.0" y="698.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">rank 1's expert computes 74 rows;</text>
+<text x="362.0" y="714.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">rank 2's column is all zeros: 0 rows,</text>
+<text x="362.0" y="730.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">but it still enters every collective.</text>
+<rect x="640.0" y="500.0" width="570.0" height="300.0" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="658.0" y="528.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" fill="#1f2937" text-anchor="start" font-weight="700" xml:space="preserve">Backward: the same split lists, reversed (no new count exchange)</text>
+<rect x="658.0" y="550.0" width="178.0" height="32.0" rx="6" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="747.0" y="571.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">8ᵀ  combine backward</text>
+<text x="848.0" y="571.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">all_to_all(in = input_splits, out = output_splits)</text>
+<rect x="658.0" y="594.0" width="178.0" height="32.0" rx="6" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="747.0" y="615.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">7ᵀ  expert backward</text>
+<text x="848.0" y="615.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dW<tspan baseline-shift="sub" font-size="75%">e</tspan> = Σ over every source's rows, on the owner</text>
+<rect x="658.0" y="638.0" width="178.0" height="32.0" rx="6" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="747.0" y="659.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">6ᵀ  dispatch backward</text>
+<text x="848.0" y="659.0" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">all_to_all(in = output_splits, out = input_splits)</text>
+<rect x="658.0" y="682.0" width="178.0" height="32.0" rx="6" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="747.0" y="703.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">2ᵀ  router</text>
+<text x="848.0" y="703.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">gradient through w (step 9) and the aux loss</text>
+<rect x="658.0" y="726.0" width="178.0" height="32.0" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="747.0" y="747.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" fill="#1f2937" text-anchor="middle" font-weight="700" xml:space="preserve">finish_grads</text>
+<text x="848.0" y="747.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#1f2937" text-anchor="start" font-weight="normal" xml:space="preserve">dense: all-reduce, ÷DP · expert: ÷DP, no reduce (EDP = 1)</text>
+<text x="658.0" y="784.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">Per layer per step: 3 all_to_all forward (4, 6, 8) + 2 backward (8ᵀ, 6ᵀ).</text>
+<rect x="30.0" y="818.0" width="16.0" height="16.0" rx="3" fill="#e3f5e9" stroke="#2f9e5b" stroke-width="1.5"/>
+<text x="54.0" y="831.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">local compute</text>
+<rect x="173.8" y="818.0" width="16.0" height="16.0" rx="3" fill="#ddf4f5" stroke="#0b7f86" stroke-width="1.5"/>
+<text x="197.8" y="831.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">collective over the EP group</text>
+<rect x="416.6" y="818.0" width="16.0" height="16.0" rx="3" fill="#fff1dc" stroke="#e3891b" stroke-width="1.5"/>
+<text x="440.6" y="831.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">device→host sync</text>
+<rect x="580.2" y="818.0" width="16.0" height="16.0" rx="3" fill="#f1eafd" stroke="#7048c8" stroke-width="1.5"/>
+<text x="604.2" y="831.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">combine weight / router gradient</text>
+<rect x="849.4" y="818.0" width="16.0" height="16.0" rx="3" fill="#e8f0fe" stroke="#3b6fd4" stroke-width="1.5"/>
+<text x="873.4" y="831.0" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="start" font-weight="normal" xml:space="preserve">tensor on rank r</text>
+</svg>
