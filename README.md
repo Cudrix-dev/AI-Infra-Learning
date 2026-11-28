@@ -10,7 +10,7 @@ Three skills, practised every day:
 
 Two workloads only, so results stay comparable: a **small transformer on synthetic tokens** (DDP, FSDP, ZeRO, TP, PP, Triton) and an **existing PPO/SAC** implementation (parallel rollout, weight sync, CUDA Graphs, RL throughput).
 
-## Progress (updated 2026-11-27)
+## Progress (updated 2026-11-28)
 
 Day numbers and directories are fixed; when an objective is covered by earlier work, the day is closed with a record rather than renumbered.
 
@@ -30,6 +30,7 @@ Day numbers and directories are fixed; when an objective is covered by earlier w
 | 12 | Complete. Personal reference run `manual_ref_20261115T113822Z` passed every check: the simulator matched the hand-worked P = 2, M = 4 example, both schedules at M = 1, 2, 4, 8 matched one-GPU accumulation bitwise (`y` and all gradients), each rank's F/B order and peak in-flight count equalled the simulator's, and all three negative controls were detected. My `my_pp.py` passed the boundary check and all eight GPipe/1F1B cases in `manual_mine_20261115T114621Z` (`--impl mine`), with results identical to the reference's. Notes are filled with measured results, explanations and a Day 13 prediction. The optional slow-stage extension (GUIDE §4) is not done. | [guide](day12/GUIDE.md), [measured notes](day12/notes.md) |
 | 13 | Complete. Personal runs `manual_20261121T082746Z_ref` (5 layouts) and `manual_20261121T082746Z_mine` (3 layouts) passed. The learner's mapper matched Megatron across 9 layouts. The runs reproduced single-GPU loss, the derived communication counts, and 1F1B order. Measured notes and TP/PP trace annotations are complete. The profiler stall follow-up verified the GC fix and used Nsight Systems to identify slow NCCL watchdog scans. | [guide](day13/GUIDE.md), [measured notes](day13/notes.md), [profiler follow-up](day13/GUIDE.md#appendix-c-the-host-stall-found-and-fixed-assistant-run-2026-11-22-measured) |
 | 14 | Complete. Personal runs `day14_20261127T023509Z_ref` and `day14_20261127T023509Z_mine` (4 × A100-SXM4-40GB, NV12) passed every required stage and exited 0. My `my_moe.py` passed all 29 local checks and the NCCL dispatch check. Its one-GPU baseline had the same digest as the reference's. At EP=4 it matched the one-GPU baseline in all four routing cases (worst rel 6.13e-7; reference 5.93e-7). All five negative controls behaved as predicted. Skew reproduced: large all-to-one took 3.28× / 3.42× the balanced EP=4 step. The optional EP=2 × EDP=2 parity, local-aux and aux-training stages passed with the reference. My EP=2 × EDP=2 parity passed only in an assistant CPU (gloo) check. The runner now passes `--impl` to those stages. Notes are filled with measured results, the Megatron map and explanations. | [guide](day14/GUIDE.md), [measured notes](day14/notes.md), [GPU reruns](day14/GUIDE.md#appendix-c-gpu-reruns-2026-11-27) |
+| 15 | Complete. Personal runs `day15_20261128T123501Z_ref` and `day15_20261128T125243Z_mine` (1 × A100-SXM4-40GB, 15.36-CPU quota) passed all 27 core stages and exited 0. My `my_rl.py` (GAE, PPO surrogate, pipelined driver) passed 6 unit checks with 4 controls detected, and its four CartPole learning runs ended with the same final weight digests as `ref`. A first `mine` run computed GAE in float32 and missed the return target on seed 2 (142.6 < 150): a different training run caused by the rounding difference, not a bug. Sync vs async took 187.8 vs 119.3 ms per iteration (1.57×). Async had lag `{0: 2, 1: 44}`, and every fragment matched its published digest. Exp 3 scaling, the RLlib comparison and the Block 3 map are in the notes. The P1–P9 and Exp 3 predictions were reconstructed after the run, and the optional full-mode stages exist only as [pre-test]. | [guide](day15/GUIDE.md), [measured notes](day15/notes.md), [personal runs](day15/GUIDE.md#appendix-c-personal-server-runs-2026-11-28) |
 
 The day freed by Day 5 is schedule slack for Days 7–8; it is not refilled with new exercises.
 
@@ -79,7 +80,7 @@ Split a model by tensor, sequence, pipeline and expert dimensions, check the han
 | 12 | GPipe + 1F1B | 2-stage pipeline; CPU schedule simulator; pointer: compare with Megatron Core's `forward_backward_pipelining_without_interleaving` and `p2p_communication` (prepares Day 13) | Bubble and peak in-flight activations for GPipe vs 1F1B |
 | 13 | Process groups in Megatron Core | Draw the rank groups for `DP=1, TP=2, PP=2`, then run a small GPT in Megatron Core on a rented 4-GPU instance and capture a short trace; optional `TP=2, PP=1` 2-GPU baseline with the same model, global batch and precision; TP vs TP+SP drawn. Fallback if no 4-GPU host: CPU rank mapper for `TP=2 × PP=2` + 2-GPU `TP=2` and `PP=2` runs (see the Day 13 brief below) | Megatron's TP/PP/DP groups equal my drawn groups (checked by script); annotated trace with one TP all-reduce inside a stage and one PP send/recv between stages, each tied to a Megatron Core source location. Fallback criteria are separate and labelled simulated |
 | 14 | MoE + expert parallelism | Top-1 MoE with uneven `all_to_all` dispatch and backward at `EP=4`. Run the single-GPU baseline on the same four-GPU host. | Outputs and gradients match the single-GPU baseline within stated tolerances. Measure balanced vs skewed expert load, capacity drops, and slowest-rank step time. |
-| 15 | Ray + RLlib | 2 CPU rollout actors + 1 GPU learner, tagged with `policy_version` | Time breakdown per phase; staleness explained |
+| 15 | Ray + RLlib | 2 CPU rollout actors + 1 GPU learner on Ray core (actors, ObjectRefs, `ray.put` once), a minimal PPO learner, every fragment tagged with `policy_version` and a weight digest; sync vs one-step-pipelined async; RLlib PPO on the same env for comparison (see the Day 15 brief) | Time breakdown per phase (rollout, transfer, update, weight sync, idle, end-to-end) for sync and async; staleness explained from the measured lag and the first-minibatch PPO ratio; the negative controls are caught |
 
 ### Day 13 brief (for writing the Day 13 guide and code)
 
@@ -171,6 +172,57 @@ Run all GPU experiments on this host with one process per GPU and log the topolo
   - Split mismatches hang NCCL instead of erroring. The split metadata is checked collectively before every dispatch.
   - CPU timings are meaningless. Every timing claim waits for the four-GPU run.
 
+### Day 15 brief: actor–learner RL on Ray, CPU rollout actors + one GPU learner
+
+**Goal.** Build the rollout → transfer → update → weight-sync loop of an RL system on Ray core, tag every sample with the weights that produced it, and measure where an iteration's time goes. Then explain staleness from data: how much the policy changed between acting and learning, and what that does to PPO's importance ratio. This is the first RL day. It teaches what Days 1–14 did not: Ray's execution and object model, actor–learner systems, and staleness. Collectives, DDP and sharding are not re-taught.
+
+**Components** (written 2026-11-27: [GUIDE](day15/GUIDE.md), [notes](day15/notes.md), [experiments/day15_ray](experiments/day15_ray/README.md)):
+
+| Piece | Where it runs | What it does |
+| --- | --- | --- |
+| Rollout actor | Ray actor, `num_cpus=1`, `num_gpus=0` | 4 envs stepped in one process, a CPU copy of the policy, one fragment per `sample()` call, tagged with `policy_version` and a SHA-256 digest of the actor's real weights |
+| Learner | Ray actor, `num_gpus=1` | GAE on its CPU, one H2D copy, PPO epochs × minibatches on the GPU, then **one** `ray.put` of the new weights |
+| Driver | the script | `sync`: weights → sample → update. `async`: the next fragment is launched before the update (lag 1). Optional `wait`: `ray.wait` first-finished, IMPALA-style |
+| RLlib PPO | 2 EnvRunners + 1 GPU Learner | the same job in the real framework, for structure and time split (no numerical parity expected) |
+
+Environments: CartPole-v1 for the learning sanity check and Exp 2. A synthetic env with a busy-wait step cost and a configurable observation size covers the rollout-bound and learner-bound regimes of Exp 3. Ray **2.60.0** (commit `b7f4259e`, released 2026-11-04) with RLlib and gymnasium 1.2.2 installs into the image's Python 3.12 without changing torch 2.14.1 (checked with `pip install --dry-run` against a constraints file).
+
+**Required checks** (all run by `run_server_once.sh --core`):
+
+1. **GAE:** the hand-worked example and a slow O(T²) reference, with a truncation, a termination and a fragment cut. Three controls must fail both: truncation treated as termination, no bootstrap at the cut, and recursion across episode ends.
+2. **PPO surrogate:** the hand example (loss, clip fraction, KL, gradient). At lag 0 the ratio is exactly 1. At lag 1, logp recomputed with the learner's weights hides the staleness.
+3. **Version bookkeeping:** sync shows lag 0 everywhere; async shows `[0, 1, 1, …]`.
+4. **Weight sync:** every fragment's digest equals the learner's digest for the version it claims. Control: an actor that skips one sync is caught by the digest check, and only by it.
+5. **Ratio:** in sync, the first minibatch has max|ratio − 1| ≤ 1e-5 and clip fraction 0. In async, a lag-1 batch with ratio exactly 1 is flagged HIDDEN. Control: `recompute_logp` must be flagged.
+6. **Learning sanity:** CartPole reaches a mean return ≥ 150 over the last 20 episodes within 61,440 env steps, sync seeds 0–2 and async seed 0. This is a sanity threshold, not a benchmark.
+7. **Exp 0 probes:** detected resources vs the cgroup quota; OMP threads and `CUDA_VISIBLE_DEVICES` per actor; call overhead; `ray.get` vs `ray.wait`; `ray.put` once vs pass-by-value; numpy zero-copy vs torch copy; an over-sized actor that never starts.
+8. **Exp 2:** the time breakdown for sync vs async, with 2 actors + 1 GPU learner. It covers env step, inference, transfer, GAE, H2D, update, weight sync (d2h, put, get, load), idle per side, end to end and env steps/s, using steady-state medians after warmup. Each mode also gets one `ray.timeline()` trace, outside the timed runs.
+9. **Exp 3:** 1/2/4 actors × env cost 0 / 400 µs × sync/async at a fixed global batch. Each case is predicted from Exp 2's per-phase times, then measured, with the cgroup throttling recorded.
+10. **Exp 4:** RLlib PPO with 2 EnvRunners × 4 envs + 1 GPU Learner at the same batch sizes. Its timers are mapped to Exp 2's phases, next to raw per-call times.
+
+**Optional:** the `ray.wait` mode at 2 and 4 actors (lag ≈ N − 1); two identical runs per mode (are they bitwise reproducible?); 8 actors over the quota; 1 vs 8 torch threads per actor; Block 3 Stop 6 (IMPALA/APPO, V-trace). Reading only: placement groups, actor fault tolerance, the dashboard, centralized GPU inference (SEED RL), multi-node.
+
+**Completion.** `run_server_once.sh --impl mine --core` passes with `CORE_SUCCESS.txt`. Notes §2–§9 are filled from the logs and Block 3, with the phase table, the Exp 3 prediction made before the run, the lag/ratio explanation and the RLlib map.
+
+**Files.** `day15/GUIDE.md`, `day15/notes.md`; `experiments/day15_ray/`: `rl_common.py`, `rl_ref.py`, `my_rl.py` (TODO 1–3), `rl_controls.py`, `workers.py`, `train.py`, `check_rl.py`, `ray_probes.py`, `rllib_ppo.py`, `summarize.py`, `read_timeline.py`, `find_symbols.py`, `run_server_once.sh`, `download_results.ps1`. The PPO surrogate, GAE and the phase-table format (`rl_common.PHASES`, `SYNC_PHASES`) are written for reuse on Days 16 and 19.
+
+**Block 3 stops** (ray 2.60.0, line numbers checked by `find_symbols.py`):
+
+1. `PPO.training_step`: sample → update → `sync_weights`, and the EMA timers.
+2. `EnvRunnerGroup.sync_weights`: one `ray.put`, fire-and-forget `set_state`.
+3. `SingleAgentEnvRunner._sample`: `WEIGHTS_SEQ_NO` per timestep, `truncated`, `eps.cut`, the stale-weights guard.
+4. `Learner.update`: one version per call, H2D in `_convert_batch_type`, the PPO ratio.
+5. The GAE connector and `compute_value_targets`: terminated vs truncated, and which critic produces the values.
+6. Optional: IMPALA/APPO's async path and V-trace.
+7. Ray core: the cgroup CPU count, `OMP_NUM_THREADS`, `CUDA_VISIBLE_DEVICES` at 0 GPUs, opt-in torch zero-copy.
+
+**Risks.**
+
+- The host's CPUs are shared, and the container's quota (7.68 CPUs on the pre-test host) is far below `os.cpu_count()` (64). Ray detects 7, so more than 6 one-CPU actors next to the learner never start without `--ray-num-cpus`. Every run records `cpu.max` and the throttling counters, and timings are compared only within a host.
+- At these sizes the GPU learner is host-bound (about 3.8 ms per optimizer step whatever the batch or width). That hides real GPU-work scaling: "learner-bound" here means Python and launch overhead.
+- RLlib's own timers are EMAs (coefficient 0.01), so a short run reports mostly its first iteration. The comparison uses raw wrapped call times next to them.
+- A timing in an async iteration includes waiting. `transfer` there contains queueing behind the busy learner.
+
 ### Days 16–20: LLM RL pipeline, capstone and report
 
 Move weights from a sharded trainer to an inference engine, understand rollout scheduling, trace one verl update, and finish with a distributed PPO backend.
@@ -205,7 +257,7 @@ outputs/                Logs, checkpoints and measurements from runs (git-ignore
 
 ## Setup
 
-The current experiment environment is **one Linux Vast.ai instance with 2 × NVIDIA A100-SXM4-40GB**, connected by NV12. Use one process per GPU for all GPU experiments, with matching 1-GPU and 2-GPU baselines. Local Windows is used for editing and git. Days 13 and 14 each use a single **4-GPU instance** for their core runs. Day 13 uses Megatron Core `TP=2 × PP=2`, and Day 14 uses `EP=4`. Day 14 runs its one-GPU baseline on the same server. Larger layouts are studied with a CPU simulator and labelled simulated.
+The current experiment environment is **one Linux Vast.ai instance with 2 × NVIDIA A100-SXM4-40GB**, connected by NV12. Use one process per GPU for all GPU experiments, with matching 1-GPU and 2-GPU baselines. Local Windows is used for editing and git. Days 13 and 14 each use a single **4-GPU instance** for their core runs. Day 13 uses Megatron Core `TP=2 × PP=2`, and Day 14 uses `EP=4`. Day 14 runs its one-GPU baseline on the same server. Day 15 needs only **one GPU** (the learner); its rollout actors are CPU-only, so its CPU quota matters more than its GPUs. Larger layouts are studied with a CPU simulator and labelled simulated.
 
 The accepted image already includes Python 3.12, PyTorch 2.14.1+cu130, CUDA build 13.0 and NCCL 2.30.7; the host driver is 595.71.05. **Activate the existing environment before installing anything:**
 
@@ -236,6 +288,7 @@ Run every script from the project root. Each experiment's README lists its comma
 | --- | --- | --- |
 | Vast.ai dual A100 | 2 × A100-SXM4-40GB, NV12; default NCCL `P2P/CUMEM/read`; EPYC 7532 host, about 30.72 CPU-equivalents of quota and 129 GB offered RAM | All current and upcoming GPU experiments: 1 → 2 GPU training, communication, profiling and correctness checks |
 | Vast.ai 4 × A100 (rented per day) | 4 × A100-SXM4-80GB (Day 13 run) or 40GB (Day 13 stall follow-up, Day 14 pre-test and runs), NV12 between all pairs; topology logged per run | Day 13 Megatron Core `TP=2 × PP=2`; Day 14 `EP=4` and its one-GPU baseline on `cuda:0` of the same host. Stop, do not destroy, after downloading |
+| Vast.ai 1 × A100 (Day 15, rented 2026-11-27) | 1 × A100-PCIE-40GB, driver 595.91.07, no NVLink; 64 visible CPUs (affinity 64) but a cgroup quota of 7.68 CPUs (`cpu.max` `768000 100000`), which Ray 2.60.0 truncates to 7; 377 GB RAM, `/dev/shm` 23 GB, 60 GB overlay disk. Ray 2.60.0 + RLlib + gymnasium 1.2.2 installed into `/venv/main` with torch pinned | Day 15 actor–learner runs: CPU rollout actors + one GPU learner. Record `cpu.max` and the throttling counters with every run. Stop, do not destroy, after downloading. The assistant's pre-tests ran on container 62799402, stopped from inside at 05:24 UTC on 2026-11-27. The personal runs on 2026-11-28 used container 63018167: 1 × A100-SXM4-40GB, driver 595.71.05, 128 visible CPUs, a 15.36-CPU quota (Ray: 15) and `/dev/shm` 31 GB. Rollout, PPO update and end-to-end time each took 1.8–1.9× as long as on the pre-test host |
 | Local Windows workspace | Editor and git | Write/review code and notes; retain downloaded results |
 
 The rented GPUs are allocated exclusively, but the entire host CPU/resources are not reserved. Keep `--condition shared` for the existing measurements and repeat timing experiments against their own baselines. P2P is enabled by default; disabling it is only a command-local comparison experiment.
